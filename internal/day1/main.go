@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 
-	"github.com/Monke457/advent/internal/pkg/reader"
+	"advent/internal/pkg/reader"
 )
 
 var digits = map[string]int{
@@ -22,30 +20,12 @@ var digits = map[string]int{
 }
 
 func main() {
-	//	fmt.Println(solveFirstProblem())
+	fmt.Println(solveFirstProblem())
 	fmt.Println(solveSecondProblem())
 }
 
-func fileToArray(fp string) []string {
-	data, err := os.Open(fp)
-	if err != nil {
-		panic(err)
-	}
-
-	defer data.Close()
-
-	scanner := bufio.NewScanner(data)
-	scanner.Split(bufio.ScanLines)
-
-	lines := []string{}
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines
-}
-
 func solveFirstProblem() int {
-	lines := fileToArray("data/day1.txt")
+	lines := reader.FileToArray("data/day1.txt")
 
 	sum := 0
 	for _, l := range lines {
@@ -62,7 +42,7 @@ func solveFirstProblem() int {
 }
 
 func solveSecondProblem() int {
-	lines := fileToArray("data/day1.txt")
+	lines := reader.FileToArray("data/day1.txt")
 
 	sum := 0
 

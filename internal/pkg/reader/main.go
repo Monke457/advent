@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func fileToArray(fp string) []string {
+func FileToArray(fp string) []string {
 	data, err := os.Open(fp)
 	if err != nil {
 		panic(err)
