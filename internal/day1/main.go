@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/Monke457/advent/internal/pkg/reader"
 )
 
 var digits = map[string]int{
