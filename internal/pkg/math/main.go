@@ -1,0 +1,57 @@
+package math
+
+func LCDM(a, b int) int {
+	return a * b / GCD(a, b)
+}
+
+func LCD(args ...int) int {
+	if len(args) < 2 {
+		panic("not enough args")
+	}
+	if len(args) == 2 {
+		return LCDM(args[0], args[1])
+	} else {
+		return LCDM(args[0], LCD(args[1:]...))
+	}
+}
+
+func GCD(a, b int) int {
+	c := 0
+	if a&1 == 0 && b&1 == 0 {
+		for a&1 == 0 && b&1 == 0 {
+			a = a >> 1
+			b = b >> 1
+			c++
+		}
+	}
+	if a&1 == 0 {
+		for a&1 == 0 {
+			a = a >> 1
+		}
+	}
+	if b&1 == 0 {
+		for b&1 == 0 {
+			b = b >> 1
+		}
+	}
+	for a != b {
+		if a > b {
+			a = (a - b) >> 1
+			for a&1 == 0 {
+				if a == b {
+					break
+				}
+				a = a >> 1
+			}
+		} else {
+			b = (b - a) >> 1
+			for b&1 == 0 {
+				if a == b {
+					break
+				}
+				b = b >> 1
+			}
+		}
+	}
+	return 1 << c * a
+}

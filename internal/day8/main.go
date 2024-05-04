@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advent/internal/pkg/math"
 	"advent/internal/pkg/reader"
 	"fmt"
 	"strings"
@@ -17,7 +18,7 @@ func main() {
 	dirs := parseDirections(lines[0])
 	m := parseMap(lines[1:])
 
-	//fmt.Println(solveFirstProblem(dirs, m))
+	fmt.Println(solveFirstProblem(dirs, m))
 	fmt.Println(solveSecondProblem(dirs, m))
 }
 
@@ -43,34 +44,31 @@ func solveFirstProblem(dirs []rune, m map[string][2]string) int {
 
 func solveSecondProblem(dirs []rune, m map[string][2]string) int {
 	start := startingPositions(m)
-	found := map[int]int{}
 	c := make(chan int)
-	for i, s := range start {
-		go walk(i, dirs, s, m, c)
+
+	for _, s := range start {
+		go walk(dirs, s, m, c)
 	}
 
+	result := []int{}
+	count := 0
 	for {
 		f := <-c
-		found[f]++
-		if found[f] == len(start) {
-			return f
-		}
-		if found[f] > 2 {
-			fmt.Printf("\nz found at step %d %d times", f, found[f])
+		count++
+		result = append(result, f)
+		if count == len(start) {
+			return math.LCD(result[:]...)
 		}
 	}
 }
 
-func walk(no int, dirs []rune, s string, m map[string][2]string, c chan<- int) {
+func walk(dirs []rune, s string, m map[string][2]string, c chan<- int) {
 	steps := 0
 	dir := 0
 	i := 0
-	round := 1
 	for {
 		steps++
 		if i >= len(dirs) {
-			round++
-			fmt.Println("goroutine number", no, "starting round", round)
 			i = 0
 		}
 		if dirs[i] == L {
@@ -81,6 +79,7 @@ func walk(no int, dirs []rune, s string, m map[string][2]string, c chan<- int) {
 		s = m[s][dir]
 		if s[2] == 90 {
 			c <- steps
+			return
 		}
 		i++
 	}
