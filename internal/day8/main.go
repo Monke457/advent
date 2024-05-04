@@ -17,7 +17,8 @@ func main() {
 	dirs := parseDirections(lines[0])
 	m := parseMap(lines[1:])
 
-	fmt.Println(solveFirstProblem(dirs, m))
+	//fmt.Println(solveFirstProblem(dirs, m))
+	fmt.Println(solveSecondProblem(dirs, m))
 }
 
 func solveFirstProblem(dirs []rune, m map[string][2]string) int {
@@ -40,6 +41,51 @@ func solveFirstProblem(dirs []rune, m map[string][2]string) int {
 	return steps
 }
 
+func solveSecondProblem(dirs []rune, m map[string][2]string) int {
+	start := startingPositions(m)
+	found := map[int]int{}
+	c := make(chan int)
+	for i, s := range start {
+		go walk(i, dirs, s, m, c)
+	}
+
+	for {
+		f := <-c
+		found[f]++
+		if found[f] == len(start) {
+			return f
+		}
+		if found[f] > 2 {
+			fmt.Printf("\nz found at step %d %d times", f, found[f])
+		}
+	}
+}
+
+func walk(no int, dirs []rune, s string, m map[string][2]string, c chan<- int) {
+	steps := 0
+	dir := 0
+	i := 0
+	round := 1
+	for {
+		steps++
+		if i >= len(dirs) {
+			round++
+			fmt.Println("goroutine number", no, "starting round", round)
+			i = 0
+		}
+		if dirs[i] == L {
+			dir = 0
+		} else {
+			dir = 1
+		}
+		s = m[s][dir]
+		if s[2] == 90 {
+			c <- steps
+		}
+		i++
+	}
+}
+
 func parseDirections(line string) []rune {
 	dirs := []rune{}
 	for _, r := range line {
@@ -47,6 +93,7 @@ func parseDirections(line string) []rune {
 	}
 	return dirs
 }
+
 func parseMap(lines []string) map[string][2]string {
 	m := map[string][2]string{}
 
@@ -66,4 +113,14 @@ func parseMap(lines []string) map[string][2]string {
 	}
 
 	return m
+}
+
+func startingPositions(m map[string][2]string) []string {
+	start := []string{}
+	for key := range m {
+		if key[2] == 65 {
+			start = append(start, key)
+		}
+	}
+	return start
 }
