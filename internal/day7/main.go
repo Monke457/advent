@@ -27,44 +27,48 @@ type hand struct {
 
 func main() {
 	lines := reader.FileToArray("data/day7.txt")
+	fmt.Println(solveProblem(lines, false))
+	fmt.Println(solveProblem(lines, true))
+}
 
-	hands := parseHands(lines)
+func solveProblem(lines []string, j bool) int {
+	hands := parseHands(lines, j)
 	slices.SortFunc(hands, func(a, b hand) int {
-		return a.compare(b)
+		return a.compare(b, j)
 	})
 
 	winnings := 0
 	for i, hand := range hands {
 		winnings += (i + 1) * hand.bet
 	}
-	fmt.Println(winnings)
+	return winnings
 }
 
-func (h hand) compare(hand hand) int {
-	if hand.t > h.t {
+func (h hand) compare(hand hand, j bool) int {
+	if hand.t < h.t {
 		return 1
 	}
 	if hand.t == h.t {
-		return compareRunes(h.hand, hand.hand)
+		return compareRunes(h.hand, hand.hand, j)
 	}
 	return -1
 }
 
-func compareRunes(a, b string) int {
+func compareRunes(a, b string, j bool) int {
 	for i := 0; i < len(a); i++ {
-		valA := cardValue(a[i])
-		valB := cardValue(b[i])
-		if valB > valA {
+		valA := cardValue(a[i], j)
+		valB := cardValue(b[i], j)
+		if valB < valA {
 			return 1
 		}
-		if valB < valA {
+		if valB > valA {
 			return -1
 		}
 	}
 	return 0
 }
 
-func cardValue(b byte) int {
+func cardValue(b byte, j bool) int {
 	switch b {
 	case 65:
 		return 14
@@ -73,6 +77,9 @@ func cardValue(b byte) int {
 	case 81:
 		return 12
 	case 74:
+		if j {
+			return 1
+		}
 		return 11
 	case 84:
 		return 10
@@ -85,13 +92,18 @@ func cardValue(b byte) int {
 	}
 }
 
-func getType(h hand) int {
+func getType(h hand, j bool) int {
 	cards := map[rune]int{}
+	jokers := 0
 	for _, card := range h.hand {
+		if j && card == 74 {
+			jokers++
+			continue
+		}
 		cards[card]++
 	}
 	switch len(cards) {
-	case 1:
+	case 1, 0:
 		return FIVE
 	case 2:
 		for _, v := range cards {
@@ -105,8 +117,11 @@ func getType(h hand) int {
 			if v == 3 {
 				return THREE
 			}
+			if v == 2 {
+				return TWO_PAIR + jokers
+			}
 		}
-		return TWO_PAIR
+		return PAIR + jokers
 	case 4:
 		return PAIR
 	default:
@@ -114,7 +129,7 @@ func getType(h hand) int {
 	}
 }
 
-func parseHands(c []string) []hand {
+func parseHands(c []string, j bool) []hand {
 	hands := []hand{}
 	for _, line := range c {
 		l := strings.Split(line, " ")
@@ -124,7 +139,7 @@ func parseHands(c []string) []hand {
 		}
 
 		hand := hand{hand: l[0], bet: bet}
-		hand.t = getType(hand)
+		hand.t = getType(hand, j)
 		hands = append(hands, hand)
 	}
 	return hands
