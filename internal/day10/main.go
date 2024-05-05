@@ -2,9 +2,7 @@ package main
 
 import (
 	"advent/internal/pkg/reader"
-	"cmp"
 	"fmt"
-	"slices"
 	"strings"
 )
 
@@ -13,6 +11,8 @@ type move struct {
 	pos   [2]int
 	steps int
 	seed  int
+	v     bool
+	h     bool
 }
 
 var north [3]byte = [3]byte{
@@ -27,6 +27,8 @@ var south [3]byte = [3]byte{
 var west [3]byte = [3]byte{
 	45, 55, 74,
 }
+var NV byte = 45
+var NH byte = 124
 
 var directions = [][]int{
 	{-1, 0},
@@ -72,25 +74,72 @@ func solveFirstProblem(start [2]int, data []string) ([]move, int) {
 	}
 }
 
-func solveSecondProblem(moves []move, data []string) int {
-	slices.SortFunc(moves, func(a, b move) int {
-		if a.seed == b.seed {
-			if a.seed == 0 {
-				return cmp.Compare(a.steps, b.steps)
-			}
-			return cmp.Compare(b.steps, a.steps)
-		}
-		if a.seed > b.seed {
-			return 1
-		} else {
-			return -1
-		}
-	})
+func findMove(moves []move, row, col int) *move {
 	for _, m := range moves {
-		fmt.Printf("\npipe: %c, pos: [%d,%d], steps: %d, seed. %d", m.pipe, m.pos[0], m.pos[1], m.steps, m.seed)
+		if m.pos[0] == row && m.pos[1] == col {
+			return &m
+		}
 	}
-	fmt.Println()
-	return len(data)*len(data[0]) - len(moves)
+	return nil
+}
+
+func lastInRow(moves []move, row, col, l int) bool {
+	for _, m := range moves {
+		for c := col; c < l; c++ {
+			if m.pos[0] == row && m.pos[1] == c {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func nextVH(line string) *rune {
+	for _, r := range line {
+		if r == 55 || r == 74 {
+			return &r
+		}
+	}
+	return nil
+}
+
+func solveSecondProblem(moves []move, data []string) int {
+	count := 0
+	for i := range data {
+		b := false
+		for j := range data[i] {
+			m := findMove(moves, i, j)
+
+			if m != nil {
+				if m.v && !m.h {
+					b = !b
+				} else if m.pipe == 76 {
+					if *nextVH(data[i][j:]) == 55 {
+						b = !b
+					}
+				} else if m.pipe == 70 {
+					if *nextVH(data[i][j:]) == 74 {
+						b = !b
+					}
+				}
+
+				if lastInRow(moves, i, j+1, len(data[i])) {
+					b = false
+				}
+				fmt.Printf("%c", m.pipe)
+			} else {
+				if b {
+					fmt.Print("i")
+					count++
+				} else {
+					fmt.Print("o")
+				}
+			}
+		}
+		fmt.Println()
+	}
+
+	return count
 }
 
 func run(data []string, moves []move, p [2]int, seed int, c chan<- move) {
@@ -126,25 +175,27 @@ loop:
 }
 
 func getMove(i, row, col int, next, curr byte) *move {
+	v := !valid(next, NV)
+	h := !valid(next, NH)
 	switch i {
 	case 0:
 		if valid(next, south[:]...) && valid(curr, north[:]...) {
-			return &move{pipe: next, pos: [2]int{row, col}}
+			return &move{pipe: next, pos: [2]int{row, col}, v: v, h: h}
 		}
 		return nil
 	case 1:
 		if valid(next, west[:]...) && valid(curr, east[:]...) {
-			return &move{pipe: next, pos: [2]int{row, col}}
+			return &move{pipe: next, pos: [2]int{row, col}, v: v, h: h}
 		}
 		return nil
 	case 2:
 		if valid(next, north[:]...) && valid(curr, south[:]...) {
-			return &move{pipe: next, pos: [2]int{row, col}}
+			return &move{pipe: next, pos: [2]int{row, col}, v: v, h: h}
 		}
 		return nil
 	case 3:
 		if valid(next, east[:]...) && valid(curr, west[:]...) {
-			return &move{pipe: next, pos: [2]int{row, col}}
+			return &move{pipe: next, pos: [2]int{row, col}, v: v, h: h}
 		}
 		return nil
 	}
@@ -174,6 +225,9 @@ func getStartMoves(data []string, pos [2]int) [][2]int {
 	for i, d := range directions {
 		row := pos[0] + d[0]
 		col := pos[1] + d[1]
+		if row < 0 || col < 0 || row >= len(data) || col >= len(data[0]) {
+			continue
+		}
 		next := data[row][col]
 		if next == 46 {
 			continue
