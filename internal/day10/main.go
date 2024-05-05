@@ -4,19 +4,32 @@ import (
 	"advent/internal/pkg/reader"
 	"fmt"
 	"strings"
-	"time"
 )
 
 type move struct {
+	pipe  byte
 	pos   [2]int
 	steps int
+}
+
+var north [3]byte = [3]byte{
+	124, 76, 74,
+}
+var east [3]byte = [3]byte{
+	45, 70, 76,
+}
+var south [3]byte = [3]byte{
+	124, 55, 70,
+}
+var west [3]byte = [3]byte{
+	45, 55, 74,
 }
 
 var directions = [][]int{
 	{-1, 0},
 	{0, 1},
-	{0, -1},
 	{1, 0},
+	{0, -1},
 }
 
 func main() {
@@ -30,101 +43,98 @@ func solveFirstProblem(start [2]int, data []string) int {
 	pos := getStartMoves(data, start)
 
 	c := make(chan move)
-	for _, p := range pos {
-		go run(data, start, p, c)
+	for i, p := range pos {
+		m := []move{
+			{pipe: data[start[0]][start[1]], pos: start},
+		}
+		go run(data, m, p, i, c)
 	}
 
 	moves := []move{
-		{pos: start},
-		{pos: pos[0], steps: 1},
-		{pos: pos[1], steps: 1},
+		{pipe: data[start[0]][start[1]], pos: start},
+		{pipe: data[pos[0][0]][pos[0][1]], pos: pos[0], steps: 1},
+		{pipe: data[pos[1][0]][pos[1][1]], pos: pos[1], steps: 1},
 	}
+
 	for {
-		select {
-		case val := <-c:
-			for _, m := range moves {
-				if m.pos == val.pos && m.steps == val.steps {
-					return m.steps
-				}
+		val := <-c
+		for _, m := range moves {
+			if m.pos == val.pos && m.steps == val.steps {
+				return m.steps
 			}
-			moves = append(moves, val)
-		case <-time.After(5 * time.Second):
-			for _, m := range moves {
-				if m.steps == 10 {
-					fmt.Println(m)
-				}
-			}
-			return 0
 		}
+		moves = append(moves, val)
 	}
 }
 
-func run(data []string, start, pos [2]int, c chan<- move) {
+func run(data []string, moves []move, p [2]int, seed int, c chan<- move) {
 	steps := 1
-	path := [][2]int{start, pos}
+	moves = append(moves, move{pipe: data[p[0]][p[1]], pos: p, steps: steps})
 loop:
 	for {
-		steps++
 		for i, d := range directions {
-			row := pos[0] + d[0]
-			col := pos[1] + d[1]
-			r := data[row][col]
-			if r == 46 {
+			row := moves[steps].pos[0] + d[0]
+			col := moves[steps].pos[1] + d[1]
+
+			if row < 0 || col < 0 || row >= len(data) || col >= len(data[row]) {
 				continue
 			}
-			switch i {
-			case 0:
-				if r == 124 || r == 55 || r == 70 {
-					if contains(path, row, col) {
-						continue
-					}
-					pos[0] = row
-					pos[1] = col
-					path = append(path, pos)
-					c <- move{pos: [2]int{row, col}, steps: steps}
-					continue loop
-				}
-			case 1:
-				if r == 45 || r == 55 || r == 74 {
-					if contains(path, row, col) {
-						continue
-					}
-					pos[0] = row
-					pos[1] = col
-					path = append(path, pos)
-					c <- move{pos: [2]int{row, col}, steps: steps}
-					continue loop
-				}
-			case 2:
-				if r == 45 || r == 70 || r == 76 {
-					if contains(path, row, col) {
-						continue
-					}
-					pos[0] = row
-					pos[1] = col
-					path = append(path, pos)
-					c <- move{pos: [2]int{row, col}, steps: steps}
-					continue loop
-				}
-			case 3:
-				if r == 124 || r == 76 || r == 74 {
-					if contains(path, row, col) {
-						continue
-					}
-					pos[0] = row
-					pos[1] = col
-					path = append(path, pos)
-					c <- move{pos: [2]int{row, col}, steps: steps}
-					continue loop
-				}
+
+			next := data[row][col]
+			if next == 46 || contains(moves, row, col) {
+				continue
+			}
+
+			curr := moves[steps].pipe
+			if m := getMove(i, row, col, next, curr); m != nil {
+				steps++
+				m.steps = steps
+				moves = append(moves, *m)
+				c <- *m
+				continue loop
 			}
 		}
 	}
 }
 
-func contains(arr [][2]int, row, col int) bool {
-	for _, v := range arr {
-		if v[0] == row && v[1] == col {
+func getMove(i, row, col int, next, curr byte) *move {
+	switch i {
+	case 0:
+		if valid(next, south[:]...) && valid(curr, north[:]...) {
+			return &move{pipe: next, pos: [2]int{row, col}}
+		}
+		return nil
+	case 1:
+		if valid(next, west[:]...) && valid(curr, east[:]...) {
+			return &move{pipe: next, pos: [2]int{row, col}}
+		}
+		return nil
+	case 2:
+		if valid(next, north[:]...) && valid(curr, south[:]...) {
+			return &move{pipe: next, pos: [2]int{row, col}}
+		}
+		return nil
+	case 3:
+		if valid(next, east[:]...) && valid(curr, west[:]...) {
+			return &move{pipe: next, pos: [2]int{row, col}}
+		}
+		return nil
+	}
+	return nil
+}
+
+func contains(moves []move, row, col int) bool {
+	for _, m := range moves {
+		if m.pos[0] == row && m.pos[1] == col {
+			return true
+		}
+	}
+	return false
+}
+
+func valid(r byte, vals ...byte) bool {
+	for _, b := range vals {
+		if r == b {
 			return true
 		}
 	}
@@ -136,25 +146,25 @@ func getStartMoves(data []string, pos [2]int) [][2]int {
 	for i, d := range directions {
 		row := pos[0] + d[0]
 		col := pos[1] + d[1]
-		r := data[row][col]
-		if r == 46 {
+		next := data[row][col]
+		if next == 46 {
 			continue
 		}
 		switch i {
 		case 0:
-			if r == 124 || r == 55 || r == 70 {
+			if valid(next, south[:]...) {
 				result = append(result, [2]int{row, col})
 			}
 		case 1:
-			if r == 45 || r == 55 || r == 74 {
+			if valid(next, west[:]...) {
 				result = append(result, [2]int{row, col})
 			}
 		case 2:
-			if r == 45 || r == 70 || r == 76 {
+			if valid(next, north[:]...) {
 				result = append(result, [2]int{row, col})
 			}
 		case 3:
-			if r == 124 || r == 76 || r == 74 {
+			if valid(next, east[:]...) {
 				result = append(result, [2]int{row, col})
 			}
 		}
