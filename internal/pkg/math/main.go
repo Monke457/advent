@@ -1,5 +1,13 @@
 package math
 
+func AbsDiff(a, b int) int {
+	diff := a - b
+	if diff < 0 {
+		diff *= -1
+	}
+	return diff
+}
+
 func LCDM(a, b int) int {
 	return a * b / GCD(a, b)
 }
