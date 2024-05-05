@@ -58,7 +58,7 @@ func parseData(lines []string) ([]string, map[int][2]int) {
 			if col[j] {
 				continue
 			}
-			sb.WriteString(s)
+			sb.WriteString("*")
 			column++
 		}
 		data = append(data, sb.String())
@@ -66,7 +66,7 @@ func parseData(lines []string) ([]string, map[int][2]int) {
 		if strings.Contains(l, "#") {
 			continue
 		}
-		data = append(data, sb.String())
+		data = append(data, strings.Repeat("*", len(sb.String())))
 		row++
 	}
 	return data, galaxies
