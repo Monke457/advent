@@ -2,7 +2,9 @@ package main
 
 import (
 	"advent/internal/pkg/reader"
+	"cmp"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -10,6 +12,7 @@ type move struct {
 	pipe  byte
 	pos   [2]int
 	steps int
+	seed  int
 }
 
 var north [3]byte = [3]byte{
@@ -36,40 +39,63 @@ func main() {
 	lines := reader.FileToArray("data/day10.txt")
 	start := findStart(lines)
 
-	fmt.Println(solveFirstProblem(start, lines))
+	moves, result := solveFirstProblem(start, lines)
+	fmt.Println(result)
+	fmt.Println(solveSecondProblem(moves, lines))
 }
 
-func solveFirstProblem(start [2]int, data []string) int {
+func solveFirstProblem(start [2]int, data []string) ([]move, int) {
 	pos := getStartMoves(data, start)
 
 	c := make(chan move)
 	for i, p := range pos {
 		m := []move{
-			{pipe: data[start[0]][start[1]], pos: start},
+			{pipe: data[start[0]][start[1]], pos: start, seed: i},
 		}
 		go run(data, m, p, i, c)
 	}
 
 	moves := []move{
 		{pipe: data[start[0]][start[1]], pos: start},
-		{pipe: data[pos[0][0]][pos[0][1]], pos: pos[0], steps: 1},
-		{pipe: data[pos[1][0]][pos[1][1]], pos: pos[1], steps: 1},
+		{pipe: data[pos[0][0]][pos[0][1]], pos: pos[0], steps: 1, seed: 0},
+		{pipe: data[pos[1][0]][pos[1][1]], pos: pos[1], steps: 1, seed: 1},
 	}
 
 	for {
 		val := <-c
 		for _, m := range moves {
 			if m.pos == val.pos && m.steps == val.steps {
-				return m.steps
+				return moves, m.steps
 			}
 		}
 		moves = append(moves, val)
 	}
 }
 
+func solveSecondProblem(moves []move, data []string) int {
+	slices.SortFunc(moves, func(a, b move) int {
+		if a.seed == b.seed {
+			if a.seed == 0 {
+				return cmp.Compare(a.steps, b.steps)
+			}
+			return cmp.Compare(b.steps, a.steps)
+		}
+		if a.seed > b.seed {
+			return 1
+		} else {
+			return -1
+		}
+	})
+	for _, m := range moves {
+		fmt.Printf("\npipe: %c, pos: [%d,%d], steps: %d, seed. %d", m.pipe, m.pos[0], m.pos[1], m.steps, m.seed)
+	}
+	fmt.Println()
+	return len(data)*len(data[0]) - len(moves)
+}
+
 func run(data []string, moves []move, p [2]int, seed int, c chan<- move) {
 	steps := 1
-	moves = append(moves, move{pipe: data[p[0]][p[1]], pos: p, steps: steps})
+	moves = append(moves, move{pipe: data[p[0]][p[1]], pos: p, steps: steps, seed: seed})
 loop:
 	for {
 		for i, d := range directions {
@@ -89,11 +115,13 @@ loop:
 			if m := getMove(i, row, col, next, curr); m != nil {
 				steps++
 				m.steps = steps
+				m.seed = seed
 				moves = append(moves, *m)
 				c <- *m
 				continue loop
 			}
 		}
+		return
 	}
 }
 
