@@ -1,5 +1,12 @@
 package math
 
+func Factorial(n int) int {
+	if n <= 0 {
+		return 0
+	}
+	return n + Factorial(n-1)
+}
+
 func AbsDiff(a, b int) int {
 	diff := a - b
 	if diff < 0 {
