@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func FileToArray(fp string) []string {
+func FileToArray(fp string) (r []string) {
 	data, err := os.Open(fp)
 	if err != nil {
 		panic(err)
@@ -16,9 +16,15 @@ func FileToArray(fp string) []string {
 	scanner := bufio.NewScanner(data)
 	scanner.Split(bufio.ScanLines)
 
-	lines := []string{}
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		r = append(r, scanner.Text())
 	}
-	return lines
+	return
+}
+
+func Reverse(s string) (r string) {
+	for _, c := range s {
+		r = string(c) + r
+	}
+	return
 }
