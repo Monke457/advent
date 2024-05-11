@@ -14,16 +14,11 @@ func main() {
 	patterns := parsePatterns(lines)
 	sum := 0
 	for _, p := range patterns {
-		fmt.Printf("pattern\n")
-		c, v := p.CountMirrored()
-		if v {
-			sum += c
-		} else {
-			sum += c * 100
+		fmt.Println()
+		for _, l := range p.cells {
+			fmt.Printf("%c\n", l)
 		}
-		for _, row := range p.cells {
-			fmt.Printf("%c\n", row)
-		}
+		sum += p.CountMirrored()
 	}
 	fmt.Println(sum)
 }
@@ -47,69 +42,76 @@ func parsePatterns(lines []string) (res []pattern) {
 	return
 }
 
-func verticalMirrored(cells [][]rune, col, l int) map[int][2]int {
-	v := map[int][2]int{}
-	for i := range cells {
-		for j := col; j < col+l && j < len(cells[i]); j++ {
-			c := 0
-			for j-c >= 0 && j+1+c < len(cells[i]) {
-				if cells[i][j-c] != cells[i][j+1+c] {
-					break
-				}
-				c++
+func recurseMirror(cells [][]rune, col int) *int {
+	if col+1 == len(cells[0]) {
+		return nil
+	}
+	for n, row := range cells {
+		off := 0
+		for col-off >= 0 && col+1+off < len(row) {
+			if row[col-off] != row[col+1+off] {
+				return nil
 			}
-			if c >= v[i][1] {
-				v[i] = [2]int{j, c}
-			}
+			off++
+		}
+		if n+1 == len(cells) {
+			return &col
+		}
+		return recurseMirror(cells[n+1:], col)
+	}
+	return &col
+}
+
+func verticalMirrored(cells [][]rune) *int {
+	for i := 0; i < len(cells[0]); i++ {
+		col := recurseMirror(cells, i)
+		if col != nil {
+			return col
 		}
 	}
-	return v
+	return nil
 }
 
-func horizontalMirrored(cells [][]rune) map[int][2]int {
-	h := map[int][2]int{}
-	return h
-}
-
-func (p pattern) CountMirrored() (res int, vertical bool) {
-	v := verticalMirrored(p.cells, 0, len(p.cells[0]))
-
-	vk, iv, s := getMin(v)
-
-	for !s {
-		v = verticalMirrored(p.cells, iv[0], iv[1])
-		vk, iv, s = getMin(v)
+func horizontalMirrored(cells [][]rune) *int {
+loop:
+	for i := 0; i < len(cells); i++ {
+		c := 0
+		for i-c >= 0 && i+1+c < len(cells) {
+			if !sliceEqual(cells[i-c], cells[i+1+c]) {
+				continue loop
+			}
+			c++
+		}
+		return &i
 	}
+	return nil
+}
 
-	fmt.Println(v, vk, iv, "same:", s)
+func (p pattern) CountMirrored() int {
+	v := verticalMirrored(p.cells)
 
-	if iv[1] != 0 {
-		fmt.Printf("vertically mirrored at col %d\n", iv[0])
-		res = iv[0] + 1
-		vertical = true
-		return
+	if v != nil {
+		fmt.Println("vertical mirror at column", *v)
+		return *v + 1
 	}
 
 	h := horizontalMirrored(p.cells)
-	fmt.Println(h)
-	return
+
+	if h != nil {
+		fmt.Println("horizontal mirror at row", *h)
+		return (*h + 1) * 100
+	}
+	panic("no mirror found")
 }
 
-func getMin(m map[int][2]int) (k int, i [2]int, s bool) {
-	s = true
-	for key, val := range m {
-		if i[1] == 0 {
-			i = val
-			k = key
-			continue
-		}
-		if val[1] != i[1] {
-			s = false
-			if val[1] < i[1] {
-				i = val
-				k = key
-			}
+func sliceEqual(a, b []rune) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
 		}
 	}
-	return
+	return true
 }
