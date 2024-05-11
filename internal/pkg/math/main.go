@@ -1,16 +1,5 @@
 package math
 
-func Furthest(l int, n ...int) int {
-	m := 0
-	l = l >> 1
-	for _, i := range n {
-		if AbsDiff(i, l) < m || m == 0 {
-			m = i
-		}
-	}
-	return m
-}
-
 func Factorial(n int) int {
 	if n <= 0 {
 		return 0
