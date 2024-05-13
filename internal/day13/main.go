@@ -12,15 +12,15 @@ type pattern struct {
 func main() {
 	lines := reader.FileToArray("data/day13.txt")
 	patterns := parsePatterns(lines)
-	sum := 0
+	sumFirst := 0
+	sumSecond := 0
 	for _, p := range patterns {
-		fmt.Println()
-		for _, l := range p.cells {
-			fmt.Printf("%c\n", l)
-		}
-		sum += p.CountMirrored()
+		//first problem
+		sumFirst += p.CountMirrored(false)
+		//second problem
+		sumSecond += p.CountMirrored(true)
 	}
-	fmt.Println(sum)
+	fmt.Printf("first: %d \nSecond: %d\n", sumFirst, sumSecond)
 }
 
 func parsePatterns(lines []string) (res []pattern) {
@@ -40,6 +40,33 @@ func parsePatterns(lines []string) (res []pattern) {
 		row++
 	}
 	return
+}
+
+func recurseMirrorSmudged(cells [][]rune, s bool, col int) *int {
+	if col+1 == len(cells[0]) {
+		return nil
+	}
+
+	for n, row := range cells {
+		off := 0
+		for col-off >= 0 && col+1+off < len(row) {
+			if row[col-off] != row[col+1+off] {
+				if s {
+					return nil
+				}
+				s = true
+			}
+			off++
+		}
+		if n+1 == len(cells) {
+			break
+		}
+		return recurseMirrorSmudged(cells[n+1:], s, col)
+	}
+	if s {
+		return &col
+	}
+	return nil
 }
 
 func recurseMirror(cells [][]rune, col int) *int {
@@ -62,11 +89,42 @@ func recurseMirror(cells [][]rune, col int) *int {
 	return &col
 }
 
-func verticalMirrored(cells [][]rune) *int {
+func verticalMirrored(cells [][]rune, s bool) *int {
 	for i := 0; i < len(cells[0]); i++ {
-		col := recurseMirror(cells, i)
+		var col *int
+		if s {
+			col = recurseMirrorSmudged(cells, false, i)
+		} else {
+			col = recurseMirror(cells, i)
+		}
 		if col != nil {
 			return col
+		}
+	}
+	return nil
+}
+
+func horizontalMirroredSmudged(cells [][]rune) *int {
+loop:
+	for i := 0; i < len(cells); i++ {
+		smudge := false
+		c := 0
+		for i-c >= 0 && i+1+c < len(cells) {
+			smudges := countSmudges(cells[i-c], cells[i+1+c])
+			if smudges > 1 {
+				continue loop
+			}
+			if smudges == 1 {
+				if smudge {
+					continue loop
+				} else {
+					smudge = true
+				}
+			}
+			c++
+		}
+		if smudge {
+			return &i
 		}
 	}
 	return nil
@@ -77,7 +135,8 @@ loop:
 	for i := 0; i < len(cells); i++ {
 		c := 0
 		for i-c >= 0 && i+1+c < len(cells) {
-			if !sliceEqual(cells[i-c], cells[i+1+c]) {
+			equal := sliceEqual(cells[i-c], cells[i+1+c])
+			if !equal {
 				continue loop
 			}
 			c++
@@ -87,21 +146,36 @@ loop:
 	return nil
 }
 
-func (p pattern) CountMirrored() int {
-	v := verticalMirrored(p.cells)
-
+func (p pattern) CountMirrored(s bool) int {
+	v := verticalMirrored(p.cells, s)
 	if v != nil {
-		fmt.Println("vertical mirror at column", *v)
 		return *v + 1
 	}
 
-	h := horizontalMirrored(p.cells)
+	var h *int
+	if s {
+		h = horizontalMirroredSmudged(p.cells)
+	} else {
+		h = horizontalMirrored(p.cells)
+	}
 
 	if h != nil {
-		fmt.Println("horizontal mirror at row", *h)
 		return (*h + 1) * 100
 	}
 	panic("no mirror found")
+}
+
+func countSmudges(a, b []rune) int {
+	if len(a) != len(b) {
+		panic("arrays should be the same length")
+	}
+	smudges := 0
+	for i := range a {
+		if a[i] != b[i] {
+			smudges++
+		}
+	}
+	return smudges
 }
 
 func sliceEqual(a, b []rune) bool {
