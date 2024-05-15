@@ -5,6 +5,21 @@ import (
 	"os"
 )
 
+func FileToString(fp string) (r string) {
+	data, err := os.Open(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	defer data.Close()
+
+	scanner := bufio.NewScanner(data)
+	for scanner.Scan() {
+		r += scanner.Text()
+	}
+	return
+}
+
 func FileTo2DArray(fp string) (r [][]rune) {
 	data, err := os.Open(fp)
 	if err != nil {
