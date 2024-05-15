@@ -4,12 +4,11 @@ import (
 	"advent/internal/pkg/reader"
 	"fmt"
 	"slices"
-	"time"
 )
 
 func main() {
 	lines := reader.FileTo2DArray("data/day14.txt")
-	//fmt.Println("first:", solveFirstProblem(lines))
+	fmt.Println("first:", solveFirstProblem(lines))
 	fmt.Println("second:", solveSecondProblem(lines))
 }
 
@@ -24,12 +23,10 @@ func solveSecondProblem(rocks [][]rune) int {
 
 	c := make(chan int)
 	go func(c chan int) {
-		start := time.Now()
-		for range 100 {
+		for range 1000000000 {
 			rocks = cycle(rocks)
 			c <- countLoad(rocks)
 		}
-		fmt.Println("100 cycles", time.Now().Sub(start))
 		return
 	}(c)
 
@@ -40,8 +37,8 @@ func solveSecondProblem(rocks [][]rune) int {
 			arr = append(arr, load)
 			go findPattern(arr, 3, c2)
 		case p := <-c2:
-			fmt.Printf("pattern found: %d\n", arr[p[0]:p[0]+p[1]])
-			return p[1]
+			result := (1000000000-p[0])%p[1] - 1
+			return arr[result+p[0]]
 		}
 	}
 }
@@ -50,23 +47,13 @@ func findPattern(loads []int, l int, c chan [2]int) {
 	if l+l+1 >= len(loads) {
 		return
 	}
-
 	for i := 0; i+l+l < len(loads); i++ {
 		if slices.Equal(loads[i:i+l], loads[i+l:i+l+l]) {
-
-			fmt.Printf("pattern found %d, %d\n", loads[i:i+l], loads[i+l:i+l+l])
 			c <- [2]int{i, l}
 			return
 		}
 	}
 	findPattern(loads, l+1, c)
-}
-
-func printRocks(rocks [][]rune) {
-	fmt.Println()
-	for _, r := range rocks {
-		fmt.Printf("%c\n", r)
-	}
 }
 
 func tiltNorth(rocks [][]rune, pos int) [][]rune {
@@ -112,7 +99,6 @@ func cycle(rocks [][]rune) [][]rune {
 
 func cycleCol(rocks [][]rune, col int, up bool) []rune {
 	r, e := 0, 0
-
 	res := []rune{}
 	for i := 0; i < len(rocks); i++ {
 		if rocks[i][col] == '.' {
@@ -152,7 +138,6 @@ func addRunes(r, e int, h bool, res []rune, up bool) []rune {
 
 func countLoad(rocks [][]rune) int {
 	count := 0
-
 	for i, row := range rocks {
 		for _, r := range row {
 			if r == 'O' {
@@ -160,6 +145,5 @@ func countLoad(rocks [][]rune) int {
 			}
 		}
 	}
-
 	return count
 }
