@@ -3,6 +3,7 @@ package reader
 import (
 	"bufio"
 	"os"
+	"strconv"
 )
 
 func FileToString(fp string) (r string) {
@@ -16,6 +17,31 @@ func FileToString(fp string) (r string) {
 	scanner := bufio.NewScanner(data)
 	for scanner.Scan() {
 		r += scanner.Text()
+	}
+	return
+}
+
+func FileTo2DIntArray(fp string) (r [][]int) {
+	data, err := os.Open(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	defer data.Close()
+
+	scanner := bufio.NewScanner(data)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		row := []int{}
+		for _, b := range scanner.Text() {
+			i, err := strconv.Atoi(string(b))
+			if err != nil {
+				panic(err)
+			}
+			row = append(row, i)
+		}
+		r = append(r, row)
 	}
 	return
 }
