@@ -3,7 +3,6 @@ package main
 import (
 	"advent/internal/pkg/reader"
 	"fmt"
-	"sync"
 )
 
 type maze struct {
@@ -11,35 +10,62 @@ type maze struct {
 }
 
 type infos struct {
-	m   map[[2]int][]int8
-	mut sync.Mutex
+	m map[[2]int][]int8
 }
-
-var info = infos{m: map[[2]int][]int8{}}
 
 func main() {
 	data := reader.FileTo2DArray("data/day16.txt")
 	maze := maze{cells: data}
 
-	for _, row := range maze.cells {
-		fmt.Printf("%c\n", row)
-	}
-
-	fmt.Println(solveFirstProblem(maze))
+	fmt.Println("first:", solveFirstProblem(maze))
+	fmt.Println("second:", solveSecondProblem(maze))
 }
 
 func solveFirstProblem(m maze) int {
-	m.Walk(0, 0, 2)
+	c := make(chan int)
+	go func() {
+		info := infos{m: map[[2]int][]int8{}}
+		m.Walk(info, 0, -1, 2)
+		c <- len(info.m)
+	}()
 
-	info.mut.Lock()
-	for key, val := range info.m {
-		fmt.Printf("cell %d: cardinals %d\n", key, val)
-	}
-	info.mut.Unlock()
-	return 0
+	return <-c
 }
 
-func (m maze) Walk(row, col, cardinal int) {
+func solveSecondProblem(m maze) int {
+	c := make(chan int)
+
+	count := 0
+	for col := range m.cells[0] {
+		go m.StartWalk(-1, col, 3, c)
+		go m.StartWalk(len(m.cells), col, 1, c)
+		count += 2
+	}
+
+	for row := range m.cells {
+		go m.StartWalk(row, -1, 2, c)
+		go m.StartWalk(row, len(m.cells[0]), 4, c)
+		count += 2
+	}
+
+	res := 0
+	for range count {
+		tiles := <-c
+		if tiles > res {
+			res = tiles
+		}
+	}
+	return res
+}
+
+func (m maze) StartWalk(row, col, dir int, c chan int) {
+	info := infos{m: map[[2]int][]int8{}}
+	m.Walk(info, row, col, dir)
+	c <- len(info.m)
+	return
+}
+
+func (m maze) Walk(info infos, row, col, cardinal int) {
 	for {
 		switch cardinal {
 		case 1:
@@ -57,8 +83,8 @@ func (m maze) Walk(row, col, cardinal int) {
 			case '\\':
 				cardinal = 4
 			case '-':
-				m.Walk(row, col, 2)
-				m.Walk(row, col, 4)
+				m.Walk(info, row, col, 2)
+				m.Walk(info, row, col, 4)
 				return
 			}
 		case 2:
@@ -76,8 +102,8 @@ func (m maze) Walk(row, col, cardinal int) {
 			case '\\':
 				cardinal = 3
 			case '|':
-				m.Walk(row, col, 1)
-				m.Walk(row, col, 3)
+				m.Walk(info, row, col, 1)
+				m.Walk(info, row, col, 3)
 				return
 			}
 		case 3:
@@ -95,8 +121,8 @@ func (m maze) Walk(row, col, cardinal int) {
 			case '\\':
 				cardinal = 2
 			case '-':
-				m.Walk(row, col, 2)
-				m.Walk(row, col, 4)
+				m.Walk(info, row, col, 2)
+				m.Walk(info, row, col, 4)
 				return
 			}
 		case 4:
@@ -114,8 +140,8 @@ func (m maze) Walk(row, col, cardinal int) {
 			case '\\':
 				cardinal = 1
 			case '|':
-				m.Walk(row, col, 1)
-				m.Walk(row, col, 3)
+				m.Walk(info, row, col, 1)
+				m.Walk(info, row, col, 3)
 				return
 			}
 		}
@@ -123,15 +149,11 @@ func (m maze) Walk(row, col, cardinal int) {
 }
 
 func (i *infos) Update(row, col int, cardinal int8) bool {
-	i.mut.Lock()
-	fmt.Println("updating info", i.m, "at", row, col, "with", cardinal)
 	for _, val := range i.m[[2]int{row, col}] {
 		if val == cardinal {
 			return true
 		}
 	}
 	i.m[[2]int{row, col}] = append(i.m[[2]int{row, col}], cardinal)
-	fmt.Println("updated", i.m)
-	i.mut.Unlock()
 	return false
 }
