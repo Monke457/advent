@@ -3,97 +3,100 @@ package main
 import (
 	"advent/internal/pkg/reader"
 	"fmt"
+	"math"
 )
 
 type blocks struct {
-	cells [][]int
+	cells   [][]int
+	history [3]int8
 }
 
-var directions = [4]int{1, 2, 3, 4}
+const (
+	north int8 = 1
+	east       = 2
+	south      = 3
+	west       = 4
+)
 
 func main() {
 	data := reader.FileTo2DIntArray("data/day17.txt")
-	blocks := blocks{cells: data}
-	for _, row := range blocks.cells {
+	blocks := NewBlocks(data)
+	blocks.Print()
+	blocks.FindRoute()
+}
+
+func NewBlocks(cells [][]int) blocks {
+	return blocks{cells: cells, history: [3]int8{}}
+}
+
+func (b blocks) Print() {
+	for _, row := range b.cells {
 		fmt.Printf("%d\n", row)
 	}
-	blocks.StartWalk()
 }
 
-func (b blocks) StartWalk() {
-	c := make(chan []int)
-	go func() {
-		c <- b.Walk(0, 1, 0, [3]int{2}, map[[2]int]bool{}, []int{})
-	}()
-	/*
-		go func() {
-			c <- b.Walk(1, 0, 0, [3]int{4}, []int{})
-		}()
-	*/
-	results := <-c
-	//	results = append(results, (<-c)[:]...)
-	fmt.Printf("Heat values - %d\n", results)
+func (b blocks) FindRoute() int {
+	res := b.walk(0, 0, 0, math.MaxInt64)
+	return res
 }
 
-func (b blocks) Walk(row, col, heat int, dirs [3]int, seen map[[2]int]bool, results []int) []int {
+func (b blocks) walk(row, col, h, m int) int {
+	fmt.Printf("history %d\n", b.history)
 	if row == len(b.cells)-1 && col == len(b.cells[0])-1 {
-		results = append(results, heat)
-		fmt.Println("adding heat value to array", heat)
-		return results
+		fmt.Println("reached end at ", row, col, "min", min(h, m))
+		return min(h, m)
 	}
-	if row < 0 || col < 0 || row == len(b.cells) || col == len(b.cells[0]) {
-		fmt.Println("oob", row, col)
-		return results
+	if row < 0 || col < 0 || row >= len(b.cells) || col >= len(b.cells[0]) {
+		fmt.Println("oob")
+		return m
 	}
-	if seen[[2]int{row, col}] {
-		fmt.Println("seen")
-		return results
+	if row > 0 || col > 0 {
+		fmt.Printf("adding %d to %d at [%d, %d]\n", b.cells[row][col], h, row, col)
+		h += b.cells[row][col]
+	}
+	if h > m {
+		return m
 	}
 
-	heat += b.cells[row][col]
-	seen[[2]int{row, col}] = true
-
-	for _, d := range directions {
-		if d == dirs[0] && d == dirs[1] && d == dirs[2] {
+	for _, i := range []int8{2, 3, 1, 4} {
+		fmt.Println("loop", i)
+		if b.history[0] == i && b.history[1] == i && b.history[2] == i {
 			continue
 		}
-		switch d {
-		case 1:
-			if dirs[0] == 3 {
-				continue
-			}
-			dirs := shiftArray(dirs, d)
-			res := b.Walk(row-1, col, heat, dirs, seen, results)
-			results = append(results, res[:]...)
+		switch i {
 		case 2:
-			if dirs[0] == 4 {
+			if b.history[0] == 4 {
 				continue
 			}
-			dirs := shiftArray(dirs, d)
-			res := b.Walk(row, col+1, heat, dirs, seen, results)
-			results = append(results, res[:]...)
+			b.updateHistory(2)
+			m = b.walk(row, col+1, h, m)
 		case 3:
-			if dirs[0] == 1 {
+			if b.history[0] == 1 {
 				continue
 			}
-			dirs := shiftArray(dirs, d)
-			res := b.Walk(row+1, col, heat, dirs, seen, results)
-			results = append(results, res[:]...)
+			b.updateHistory(3)
+			m = b.walk(row+1, col, h, m)
+		case 1:
+			if b.history[0] == 3 {
+				continue
+			}
+			b.updateHistory(1)
+			m = b.walk(row-1, col, h, m)
 		case 4:
-			if dirs[0] == 2 {
+			if b.history[0] == 2 {
 				continue
 			}
-			dirs := shiftArray(dirs, d)
-			res := b.Walk(row, col-1, heat, dirs, seen, results)
-			results = append(results, res[:]...)
+			b.updateHistory(4)
+			m = b.walk(row, col-1, h, m)
 		}
 	}
-	return results
+
+	fmt.Println("end of function")
+	return m
 }
 
-func shiftArray(arr [3]int, val int) [3]int {
-	arr[2] = arr[1]
-	arr[1] = arr[0]
-	arr[0] = val
-	return arr
+func (b *blocks) updateHistory(val int8) {
+	b.history[2] = b.history[1]
+	b.history[1] = b.history[0]
+	b.history[0] = val
 }
