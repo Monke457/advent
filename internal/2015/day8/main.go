@@ -10,15 +10,34 @@ import (
 func main() {
 	data := reader.FileToArray("data/2015/day8.txt")
 
-	total := 0
-	memory := 0
-
+	first := 0
+	second := 0
 	for _, l := range data {
-		total += len(l)
-		mem := parseInMemory(l)
-		memory += len(mem)
+		first += calculateLength(l)
+		second += calculateLength(encode(l))
 	}
-	fmt.Println("First problem:", total-memory)
+	fmt.Println("First problem:", first)
+	fmt.Println("Second problem:", second)
+}
+
+func calculateLength(data string) int {
+	total := len(data)
+	mem := parseInMemory(data)
+	memory := len(mem)
+	return total - memory
+}
+
+func encode(str string) string {
+	sb := strings.Builder{}
+	sb.WriteRune('"')
+	for _, r := range str {
+		if r == '"' || r == '\\' {
+			sb.WriteRune('\\')
+		}
+		sb.WriteRune(r)
+	}
+	sb.WriteRune('"')
+	return sb.String()
 }
 
 func parseInMemory(str string) string {
