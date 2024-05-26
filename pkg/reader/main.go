@@ -21,6 +21,31 @@ func FileToString(fp string) (r string) {
 	return
 }
 
+func FileToIntArray(fp string) (r []int) {
+	data, err := os.Open(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	defer data.Close()
+
+	scanner := bufio.NewScanner(data)
+	scanner.Split(bufio.ScanRunes)
+
+	for scanner.Scan() {
+		rn := scanner.Text()
+		if rn == "\n" {
+			break
+		}
+		i, err := strconv.Atoi(string(rn))
+		if err != nil {
+			panic(err)
+		}
+		r = append(r, i)
+	}
+	return
+}
+
 func FileTo2DIntArray(fp string) (r [][]int) {
 	data, err := os.Open(fp)
 	if err != nil {
