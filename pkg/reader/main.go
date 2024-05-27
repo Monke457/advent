@@ -2,6 +2,8 @@ package reader
 
 import (
 	"bufio"
+	"encoding/json"
+	"log"
 	"os"
 	"strconv"
 )
@@ -19,6 +21,15 @@ func FileToString(fp string) (r string) {
 		r += scanner.Text()
 	}
 	return
+}
+
+func FileToJsonEncoded(fp string) (r []byte) {
+	data := FileToString(fp)
+	val, err := json.Marshal(data)
+	if err != nil {
+		log.Printf("Could not marshal json %s\n", err)
+	}
+	return val
 }
 
 func FileToIntArray(fp string) (r []int) {

@@ -18,7 +18,7 @@ func main() {
 			increment(data, len(data)-1)
 			shiftBaddies(data)
 		}
-		fmt.Printf("Problem %d:", i)
+		fmt.Printf("Problem %d:", i+1)
 		printPtrs(data)
 
 		increment(data, len(data)-1)
