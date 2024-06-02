@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func FileToString(fp string) (r string) {
@@ -70,16 +71,34 @@ func FileTo2DIntArray(fp string) (r [][]int) {
 
 	for scanner.Scan() {
 		row := []int{}
-		for _, b := range scanner.Text() {
-			i, err := strconv.Atoi(string(b))
-			if err != nil {
-				panic(err)
+		text := scanner.Text()
+		if strings.Contains(text, " ") {
+			nums := strings.Split(text, " ")
+			for _, num := range nums {
+				i := convertToInt(num)
+				if i != nil {
+					row = append(row, *i)
+				}
 			}
-			row = append(row, i)
+		} else {
+			for _, b := range text {
+				i := convertToInt(string(b))
+				if i != nil {
+					row = append(row, *i)
+				}
+			}
 		}
 		r = append(r, row)
 	}
 	return
+}
+
+func convertToInt(str string) *int {
+	res, err := strconv.Atoi(str)
+	if err != nil {
+		return nil
+	}
+	return &res
 }
 
 func FileTo2DArray(fp string) (r [][]rune) {
