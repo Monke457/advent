@@ -2,49 +2,31 @@ package main
 
 import (
 	"advent/pkg/reader"
-	"cmp"
+	"advent/pkg/sorter"
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 )
 
+// so sadge :(
 func main() {
 	data := reader.FileToArray("data/2015/day13.txt")
 
 	prefs := parsePrefs(data)
+	names := sorter.GetOrderByKey(prefs)
 
-	optimal := 0
-	for name := range prefs {
-		cache = []string{}
-		optimal = max(optimal, findOptimal(prefs, name))
-	}
-
-	fmt.Println("First problem:", optimal)
-}
-
-var cache = []string{}
-
-func findOptimal(p map[string]map[string]int, s string) (res int) {
-	if len(cache) == len(p) {
-		return res
-	}
-	cache = append(cache, s)
-	keys := []string{}
-	for name := range p[s] {
-		if slices.Contains(cache, name) {
-			continue
+	matrix := make([][]*int, len(names))
+	for i, n1 := range names {
+		for j, n2 := range names {
+			if j == i {
+				matrix[i] = append(matrix[i], nil)
+				continue
+			}
+			sum := prefs[n1][n2] + prefs[n2][n1]
+			matrix[i] = append(matrix[i], &sum)
 		}
-		keys = append(keys, name)
 	}
-	slices.SortFunc(keys, func(a, b string) int {
-		return cmp.Compare(p[s][b], p[s][a])
-	})
-	for _, key := range keys {
-		return p[s][key] + p[key][s] + findOptimal(p, key)
-	}
-
-	return res + p[s][cache[0]] + p[cache[0]][s]
+	fmt.Println(matrix)
 }
 
 func parsePrefs(data []string) map[string]map[string]int {

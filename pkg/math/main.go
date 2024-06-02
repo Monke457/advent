@@ -1,5 +1,20 @@
 package math
 
+import "math"
+
+func Max(np []*int) int {
+	m := int(math.Inf(-1))
+	for _, v := range np {
+		if v == nil {
+			continue
+		}
+		if *v > m {
+			m = *v
+		}
+	}
+	return m
+}
+
 func Factorial(n int) int {
 	if n <= 0 {
 		return 0
