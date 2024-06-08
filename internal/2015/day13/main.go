@@ -8,25 +8,39 @@ import (
 	"strings"
 )
 
+type node struct {
+	name string
+	firstChild *node
+	nextSibling *node
+}
+
 // so sadge :(
 func main() {
 	data := reader.FileToArray("data/2015/day13.txt")
 
 	prefs := parsePrefs(data)
 	names := sorter.GetOrderByKey(prefs)
+	
+	root := node{ name: names[0] }
+	createTree(root, names[1:], 0)
 
-	matrix := make([][]*int, len(names))
-	for i, n1 := range names {
-		for j, n2 := range names {
-			if j == i {
-				matrix[i] = append(matrix[i], nil)
-				continue
-			}
-			sum := prefs[n1][n2] + prefs[n2][n1]
-			matrix[i] = append(matrix[i], &sum)
-		}
+	fmt.Println("ligma")
+}
+
+func createTree(root node, names []string, start int) {
+	if start == len(names) {
+		return
 	}
-	fmt.Println(matrix)
+
+	var curr *node = &root
+	for i := start; i < len(names); i++ {
+		n := i % len(names)
+		curr.name = names[n]
+		curr.firstChild = &node{}
+		curr = curr.firstChild
+	}
+
+	createTree(root, names, start+1) 
 }
 
 func parsePrefs(data []string) map[string]map[string]int {
