@@ -10,7 +10,7 @@ import (
 
 func main() {
 	data := reader.FileToString("data/2016/day9.txt")
-	res1 := findCompLenRec(data)
+	res1 := findCompLen(data)
 	fmt.Println("First:", res1)
 	res2 := findCompLenRec(data)
 	fmt.Println("Second:", res2)
