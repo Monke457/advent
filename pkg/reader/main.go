@@ -72,20 +72,22 @@ func FileTo2DIntArray(fp string) (r [][]int) {
 	for scanner.Scan() {
 		row := []int{}
 		text := scanner.Text()
+
+		var nums []string
 		if strings.Contains(text, " ") {
-			nums := strings.Split(text, " ")
-			for _, num := range nums {
-				i := convertToInt(num)
-				if i != nil {
-					row = append(row, *i)
-				}
-			}
+			nums = strings.Split(text, " ")
+
+		} else if strings.Contains(text, "\t") {
+			nums = strings.Split(text, "\t")
+
 		} else {
-			for _, b := range text {
-				i := convertToInt(string(b))
-				if i != nil {
-					row = append(row, *i)
-				}
+			nums = strings.Split(text, "") 
+		}
+
+		for _, num := range nums {
+			i := convertToInt(num)
+			if i != nil {
+				row = append(row, *i)
 			}
 		}
 		r = append(r, row)
