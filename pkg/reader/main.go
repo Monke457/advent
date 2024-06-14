@@ -42,6 +42,28 @@ func FileToIntArray(fp string) (r []int) {
 	defer data.Close()
 
 	scanner := bufio.NewScanner(data)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		data := scanner.Text()
+		i, err := strconv.Atoi(data)
+		if err != nil {
+			panic(err)
+		}
+		r = append(r, i)
+	}
+	return
+}
+
+func FileToIntArrayByRune(fp string) (r []int) {
+	data, err := os.Open(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	defer data.Close()
+
+	scanner := bufio.NewScanner(data)
 	scanner.Split(bufio.ScanRunes)
 
 	for scanner.Scan() {

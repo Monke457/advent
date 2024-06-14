@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	data := reader.FileToIntArray("data/2015/day10.txt")
+	data := reader.FileToIntArrayByRune("data/2015/day10.txt")
 
 	l := 0
 	for i := range 50 {
