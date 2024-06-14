@@ -55,6 +55,31 @@ func FileToIntArray(fp string) (r []int) {
 	return
 }
 
+func FileToIntArrayByTab(fp string) (r []int) {
+	data, err := os.Open(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	defer data.Close()
+
+	scanner := bufio.NewScanner(data)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		rn := scanner.Text()
+		parts := strings.Split(rn, "\t")
+		for _, part := range parts {
+			i, err := strconv.Atoi(part)
+			if err != nil {
+				panic(err)
+			}
+			r = append(r, i)
+		}
+	}
+	return
+}
+
 func FileToIntArrayByRune(fp string) (r []int) {
 	data, err := os.Open(fp)
 	if err != nil {
