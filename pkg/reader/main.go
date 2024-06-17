@@ -9,6 +9,24 @@ import (
 	"strings"
 )
 
+func FileToBinaryValue(fp string) (r []int) {
+	data, err := os.Open(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	defer data.Close()
+
+	scanner := bufio.NewScanner(data)
+	for scanner.Scan() {
+		line := scanner.Text()
+		for _, c := range line {
+			r = append(r, int(c))
+		}
+	}
+	return
+}
+
 func FileToString(fp string) (r string) {
 	data, err := os.Open(fp)
 	if err != nil {
@@ -51,6 +69,31 @@ func FileToIntArray(fp string) (r []int) {
 			panic(err)
 		}
 		r = append(r, i)
+	}
+	return
+}
+
+func FileToIntArrayByComma(fp string) (r []int) {
+	data, err := os.Open(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	defer data.Close()
+
+	scanner := bufio.NewScanner(data)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		rn := scanner.Text()
+		parts := strings.Split(rn, ",")
+		for _, part := range parts {
+			i, err := strconv.Atoi(part)
+			if err != nil {
+				panic(err)
+			}
+			r = append(r, i)
+		}
 	}
 	return
 }
