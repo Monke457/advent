@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func FileToBinaryValue(fp string) (r []int) {
+func FileToASCIIValue(fp string) (r []int) {
 	data, err := os.Open(fp)
 	if err != nil {
 		panic(err)
