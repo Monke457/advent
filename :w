@@ -34,6 +34,14 @@ func main() {
 	res := len(groups[0])
 	fmt.Println("First:", res)
 	fmt.Println("Second:", len(groups))
+
+	for i, group := range groups {
+		fmt.Printf("group: %d\t", i)
+		for k := range group {
+			fmt.Printf("%d ", k)
+		}
+		fmt.Println()
+	}
 }
 
 func groupContains(n int) bool {
