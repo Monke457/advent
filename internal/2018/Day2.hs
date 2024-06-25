@@ -1,5 +1,4 @@
 module Day2(main) where
-import Debug.Trace (trace)
 
 main = do
   solveFirst "../../data/2018/day2.txt"
@@ -14,10 +13,9 @@ solveFirst filename = do
 
 processLine :: (Int, Int) -> String -> (Int, Int)
 processLine (d, t) line = 
-  let (trip, cTrip) = containsTriple line 
-  in let (dub, cDub) = containsDouble line
-    in trace ("Processing line: " ++ line ++ " trip info: " ++ show trip ++ " " ++ show cTrip ++ " " ++ show t ++ " dub info: " ++ show dub ++ " " ++ show cDub ++ " " ++ show d) $ 
-      if dub && trip && cTrip == cDub
+  let (trip, tripChar) = containsTriple line 
+  in let (dub, dubChar) = containsDouble line
+    in if dub && trip && tripChar == dubChar 
       then (d, t + 1)
       else if dub && trip 
       then (d + 1, t + 1) 
@@ -29,7 +27,9 @@ processLine (d, t) line =
 
 
 containsDouble line = 
+  -- todo: implement function
   (True, 'a')
 
 containsTriple line = 
+  -- todo: implement function
   (True, 'b')

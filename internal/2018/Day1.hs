@@ -3,7 +3,7 @@ module Day1(main) where
 main :: IO ()
 main = do
   solveFirst "../../data/2018/day1.txt" 
-
+ 
   -- very very slow
   solveSecond "../../data/2018/day1.txt"
 
