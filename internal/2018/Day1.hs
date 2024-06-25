@@ -1,5 +1,12 @@
 module Day1(main) where
 
+main :: IO ()
+main = do
+  solveFirst "test.txt" 
+
+  -- very very slow
+  solveSecond "test.txt"
+
 
 processLine :: Int -> String -> Int 
 processLine acc (op:rest) =
@@ -43,11 +50,3 @@ solveSecond filename = do
   let linesOfFile = lines contents
   let (result, _) = processUntilSeen (0, []) linesOfFile
   putStrLn $ "Second: " ++ show result 
-
-
-main :: IO ()
-main = do
-  solveFirst "test.txt" 
-
-  -- very very slow
-  solveSecond "test.txt"
