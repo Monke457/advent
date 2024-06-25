@@ -2,13 +2,26 @@ module Day1(main) where
 
 main :: IO ()
 main = do
-  solveFirst "test.txt" 
+  solveFirst "../../data/2018/day1.txt" 
 
   -- very very slow
-  solveSecond "test.txt"
+  solveSecond "../../data/2018/day1.txt"
 
 
-processLine :: Int -> String -> Int 
+solveFirst filename = do
+  contents <- readFile filename
+  let linesOfFile = lines contents
+      result = foldl processLine 0 linesOfFile
+  putStrLn $ "First: " ++ show result 
+
+
+solveSecond filename = do
+  contents <- readFile filename
+  let linesOfFile = lines contents
+  let (result, _) = processUntilSeen (0, []) linesOfFile
+  putStrLn $ "Second: " ++ show result 
+
+
 processLine acc (op:rest) =
   case op of
     '+' -> acc + num
@@ -18,7 +31,6 @@ processLine acc (op:rest) =
     num = read rest :: Int
 
 
-processWithCheck :: (Int, [Int], Bool) -> [String] -> (Int, [Int], Bool)
 processWithCheck (acc, seen, done) [] = (acc, seen, False) 
 processWithCheck (acc, seen, done) (line:lines) =
   if acc `elem` seen 
@@ -28,25 +40,8 @@ processWithCheck (acc, seen, done) (line:lines) =
     res = processLine acc line
 
 
-processUntilSeen :: (Int, [Int]) -> [String] -> (Int, [Int]) 
 processUntilSeen (state, seen) linesOfFile = 
   let (res, allSeen, done) = processWithCheck (state, seen, done) linesOfFile 
   in if done
      then (res, allSeen)
      else processUntilSeen (res, allSeen) linesOfFile 
-
-
-solveFirst :: FilePath -> IO ()
-solveFirst filename = do
-  contents <- readFile filename
-  let linesOfFile = lines contents
-      result = foldl processLine 0 linesOfFile
-  putStrLn $ "First: " ++ show result 
-
-
-solveSecond :: FilePath -> IO ()
-solveSecond filename = do
-  contents <- readFile filename
-  let linesOfFile = lines contents
-  let (result, _) = processUntilSeen (0, []) linesOfFile
-  putStrLn $ "Second: " ++ show result 
