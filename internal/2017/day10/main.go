@@ -11,7 +11,7 @@ func main() {
 	lengths := reader.FileToIntArrayByComma("data/2017/day10.txt")
 	solveFirst(lengths)
 
-	binLengths := reader.FileToASCIIValue("data/2017/day10.txt")
+	binLengths := reader.FileToASCIIValues("data/2017/day10.txt")
 	binLengths = append(binLengths, 17, 31, 73, 47, 23)
 	solveSecond(binLengths)
 }

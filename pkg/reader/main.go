@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func FileToASCIIValue(fp string) (r []int) {
+func FileToASCIIValues(fp string) (r []int) {
 	data, err := os.Open(fp)
 	if err != nil {
 		panic(err)
