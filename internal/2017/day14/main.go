@@ -1,8 +1,8 @@
 package main
 
 import (
-	hash "advent/pkg/hashing"
-	"advent/pkg/reader"
+	hash "advent/internal/pkg/hashing"
+	"advent/internal/pkg/reader"
 	"fmt"
 	"strings"
 )

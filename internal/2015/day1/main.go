@@ -1,7 +1,7 @@
 package main
 
 import (
-	"advent/pkg/reader"
+	"advent/internal/pkg/reader"
 	"fmt"
 )
 

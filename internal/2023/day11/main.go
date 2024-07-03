@@ -1,8 +1,8 @@
 package main
 
 import (
-	"advent/pkg/math"
-	"advent/pkg/reader"
+	"advent/internal/pkg/math"
+	"advent/internal/pkg/reader"
 	"fmt"
 	"strings"
 )

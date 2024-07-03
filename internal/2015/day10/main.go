@@ -1,8 +1,8 @@
 package main
 
 import (
-	iter "advent/pkg/iterator"
-	"advent/pkg/reader"
+	iter "advent/internal/pkg/iterator"
+	"advent/internal/pkg/reader"
 	"fmt"
 )
 

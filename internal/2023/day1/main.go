@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"advent/pkg/reader"
+	"advent/internal/pkg/reader"
 )
 
 var digits = map[string]int{

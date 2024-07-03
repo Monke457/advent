@@ -1,8 +1,8 @@
 package main
 
 import (
-	"advent/pkg/reader"
-	"advent/pkg/sorter"
+	"advent/internal/pkg/reader"
+	"advent/internal/pkg/sorter"
 	"fmt"
 	"strconv"
 	"strings"
