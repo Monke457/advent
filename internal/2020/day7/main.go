@@ -26,18 +26,19 @@ func main() {
 		}
 	}
 	fmt.Println("First:", count)
-
-	fmt.Println("Second:", innerBagCount(mybag, 1))
+	fmt.Println("Second:", innerBagCount(mybag))
 }
 
-func innerBagCount(id string, sum int) int {
-	fmt.Println("checking bag", id)
+func innerBagCount(id string) int {
 	if len(bags[id]) == 0 {
 		return 1
 	}
+	sum := 0
+	if id != mybag {
+		sum++
+	}
 	for k := range bags[id] {
-		sum += bags[id][k] * innerBagCount(k, sum) 
-		fmt.Println(k, bags[id][k], len(bags[k]), sum)
+		sum += bags[id][k] * innerBagCount(k)
 	}
 	return sum
 }
