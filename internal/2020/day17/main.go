@@ -2,6 +2,7 @@ package main
 
 import (
 	"advent/internal/pkg/reader"
+	"advent/internal/pkg/grid"
 	"fmt"
 	"math"
 )
@@ -12,14 +13,10 @@ type game struct {
 	instance int
 }
 
-var neighbours = initializeNeighbours()
+var neighbours = grid.Neighbours4D() 
 
 func main() {
 	data := reader.FileTo2DArray("data/2020/day17.txt")
-
-	for _, n := range neighbours {
-		fmt.Println(n)
-	}
 
 	state := [][][][]bool{{{}}}
 	for i, line := range data {
