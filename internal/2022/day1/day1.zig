@@ -1,6 +1,7 @@
 const std = @import("std");
 const print = std.debug.print;
 
+
 pub fn main() void {
     const file_path = "../../../data/2022/day1.txt";
 
@@ -16,6 +17,7 @@ pub fn main() void {
     print("First: {}\n", .{ first(values) });
     print("Second: {}\n", .{ second(values) });
 }
+
 
 pub fn parseFile(file: std.fs.File) std.ArrayList(i32) {
     const reader = file.reader();
@@ -51,6 +53,7 @@ pub fn parseFile(file: std.fs.File) std.ArrayList(i32) {
     return res;
 }
 
+
 pub fn first(values: std.ArrayList(i32)) i32 {
     var max: i32 = 0;
     for (values.items) |value| {
@@ -60,6 +63,7 @@ pub fn first(values: std.ArrayList(i32)) i32 {
     }
     return max;
 }
+
 
 pub fn second(values: std.ArrayList(i32)) i32 {
     var max = [3]i32{0, 0, 0};
