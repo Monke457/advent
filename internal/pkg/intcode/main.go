@@ -21,7 +21,7 @@ func RunDay5(raw []int, input int) error {
 		}
 		if data[i] == 0 {
 			skip = 1
-		} else if data[i] > 4 {
+		} else if data[i] > 8 {
 			data, skip, ok = runParameterMode(data, i, input)
 			if !ok {
 				return fmterror(raw, input) 
@@ -61,6 +61,18 @@ func runParameterMode(data []int, i, input int) ([]int, int, bool) {
 	case 4:
 		ok = output(data, params[0])
 		return data, 2, ok
+	case 5:
+		skip, ok := jumpWithParams(data, i, params, true)
+		return data, skip, ok 
+	case 6:
+		skip, ok := jumpWithParams(data, i, params, false)
+		return data, skip, ok
+	case 7:
+		data, ok = less(data, params)
+		return data, 4, ok 
+	case 8:
+		data, ok = equal(data, params)
+		return data, 4, ok
 	}
 
 	return data, 0, false 
@@ -80,6 +92,7 @@ func getParams(data []int, i, code int) ([3]int, bool) {
 		}
 		code /= 10
 	}
+
 	return params, true
 }
 
@@ -96,10 +109,47 @@ func runPositionMode(data []int, i, input int) ([]int, int, bool) {
 		data, ok = store(data, i+1, input)
 		return data, 2, ok
 	case 4:
-		ok = output(data, i+1)
+		ok = output(data, data[i+1])
 		return data, 2, ok
+	case 5:
+		skip, ok := jump(data, i, true)
+		return data, skip, ok 
+	case 6:
+		skip, ok := jump(data, i, false)
+		return data, skip, ok
+	case 7:
+		data, ok = positionOp(less, data, i)
+		return data, 4, ok 
+	case 8:
+		data, ok = positionOp(equal, data, i)
+		return data, 4, ok
 	}
 	return data, 0, false
+}
+
+func jump(data []int, i int, b bool) (int, bool) {
+	if oob(len(data), i+1, i+2) {
+		return 0, false 
+	}
+	pos := data[i+1]
+	if oob(len(data), pos) {
+		return 0, false 
+	}
+	if b && data[pos] != 0 {
+		return data[i+2] - i, true 
+	}
+	if !b && data[pos] == 0 {
+		return data[i+2] - i, true 
+	}
+	return 3, true
+}
+
+func jumpWithParams(data []int, i int, params [3]int, b bool) (int, bool) {
+	val := data[params[0]]
+	if (b && val != 0) || (!b && val == 0) {
+		return data[params[1]] - i, true 
+	}
+	return 3, true
 }
 
 func store(data []int, i, input int) ([]int, bool) {
@@ -118,11 +168,7 @@ func output(data []int, i int) bool {
 	if oob(len(data), i) {
 		return false 
 	}
-	params := data[i]
-	if oob(len(data), params) {
-		return false 
-	}
-	fmt.Printf("Output: %d\n", data[params])
+	fmt.Printf("Output: %d\n", data[i])
 	return true
 }
 
@@ -140,6 +186,30 @@ func positionOp(
 	}
 
 	return op(data, params)
+}
+
+func equal(data []int, params [3]int) ([]int, bool) {
+	if oob(len(data), params[2]) {
+		return nil, false
+	}
+	if data[params[0]] == data[params[1]] {
+		data[params[2]] = 1
+	} else {
+		data[params[2]] = 0
+	}
+	return data, true 
+}
+
+func less(data []int, params [3]int) ([]int, bool) {
+	if oob(len(data), params[2]) {
+		return nil, false
+	}
+	if data[params[0]] < data[params[1]] {
+		data[params[2]] = 1
+	} else {
+		data[params[2]] = 0
+	}
+	return data, true 
 }
 
 func multiply(data []int, params [3]int) ([]int, bool) {
