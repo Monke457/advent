@@ -24,7 +24,7 @@ func run(comp ic.Computer) int {
 		done := make(chan bool)
 		go comp.Run(out, done)
 		select {
-			case yield := <- out: 
+		case yield := <- out: 
 			result = yield
 			fmt.Println("Yielded output", yield)
 		case <-done:
