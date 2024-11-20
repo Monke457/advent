@@ -1,0 +1,113 @@
+package main
+
+import (
+	"advent/internal/pkg/reader"
+	"fmt"
+	"math"
+	"slices"
+)
+
+func main() {
+	data := reader.FileTo2DArray("data/2019/day10.txt")
+
+	seenAsteroids := [][2]int{}
+	seesMost := make([]int, 2)
+
+	for y := range data {
+		for x := range data[y] {
+			if data[y][x] != '#' {
+				continue
+			}
+			seen := getSeenAsteroids(data, [2]int{y, x})
+
+			if len(seen) > len(seenAsteroids) {
+				seesMost[0] = y
+				seesMost[1] = x
+				seenAsteroids = seen[:]
+			} 
+		} 
+	}
+
+	fmt.Println(seesMost, "Sees most", len(seenAsteroids))
+
+	printMap(data, seesMost, seenAsteroids)
+
+}
+
+func printMap(data [][]rune, center []int, seen [][2]int) {
+	fmt.Println("MAP OF POSITION", center, "SEES:", len(seen), "ASTEROIDS")
+	for y, line := range data {
+		for x, val := range line {
+			if center[0] == y && center[1] == x {
+				fmt.Printf("\033[31m%c\033[0m", val)
+				continue
+			}
+			coord := [2]int{y, x}
+			if slices.Contains(seen, coord) {
+				fmt.Printf("\033[32m%c\033[0m", val)
+				continue
+			}
+			fmt.Printf("%c", val)
+		}
+		fmt.Println()
+	}
+}
+
+func getSeenAsteroids(asteroids [][]rune, pos [2]int) [][2]int {
+	seen := map[int]float64{}
+	seenCoords := [][2]int{}
+	for y := range asteroids {
+		for x := range asteroids[y] {
+			if asteroids[y][x] != '#' {
+				continue
+			}
+			fx := float64(x - pos[1])
+			fy := float64(y - pos[0])
+			if fx == 0 && fy == 0 {
+				continue
+			}
+			fmt.Println("Calculating angle for", fx, fy, "(pos", x, y, ")")
+			angle := calculateAngle(fx, fy)
+			fmt.Println("angle =", angle)
+			if dist, ok := seen[angle]; ok { 
+				if dist < fx + fy {
+					continue
+				}
+			}
+			seen[angle] = fx + fy 
+			seenCoords = append(seenCoords, [2]int{y, x})
+		}
+	} 
+	printMap(asteroids, pos[:], seenCoords)
+	return seenCoords
+}
+
+
+func calculateAngle(y, x float64) int {
+	if x == 0 && y == 0 {
+		panic("there should not be two 0 values here :(")
+	}
+	if x == 0 {
+		if y > 0 {
+			return 90
+		}
+		return 270
+	}
+	if y == 0 {
+		if x > 0 {
+			return 0
+		}
+		return 180
+	}
+	degrees := int(math.Atan(y/x) * 180 / math.Pi)
+	if x > 0 {
+		if y > 0 {
+			return degrees
+		}
+		return 270 + degrees
+	}
+	if y > 0 {
+		return 90 + degrees
+	}
+	return 180 + degrees
+}
