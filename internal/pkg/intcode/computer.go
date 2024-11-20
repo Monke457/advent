@@ -10,8 +10,8 @@ type Mode int
 type Status int
 
 const (
-	Parameter Mode = iota
-	Position
+	parameter Mode = iota
+	position
 )
 
 const (
@@ -29,11 +29,14 @@ type Computer struct {
 	phase int
 	Input int
 	phasemode bool
+	relativeBase int
 }
 
 func NewComputer(rawdata []int, phase, input int, phasemode bool) Computer {
 	data := make([]int, len(rawdata))
 	copy(data, rawdata)
+	//add buffer
+	data = append(data, make([]int, 1000)...)
 	return Computer {
 		Data: data, 
 		Index: 0, 
@@ -55,8 +58,8 @@ func (c Computer) Error(msg string) error {
 
 func (c Computer) Sprint() string {
 	str := fmt.Sprintf(
-		"\nCOMPUTER\nData: %v\nIndex: %d\nData at Index: %d\nMode: %d\n Status: %d\nPhase: %d\nInput: %d\nIn phase mode: %v\n", 
-		c.Data, c.Index, c.Data[c.Index], c.mode, c.Status, c.phase, c.Input, c.phasemode,
+		"\nCOMPUTER\nData: %v\nIndex: %d\nData at Index: %d\nMode: %d\n Status: %d\nPhase: %d\nInput: %d\nIn phase mode: %v\nRelative base: %d", 
+		c.Data, c.Index, c.Data[c.Index], c.mode, c.Status, c.phase, c.Input, c.phasemode, c.relativeBase,
 	)
 	return str 
 }

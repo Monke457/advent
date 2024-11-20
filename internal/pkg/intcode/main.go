@@ -13,14 +13,14 @@ func (c *Computer) Run(output chan int, done chan bool) {
 		op := c.getOpCode()
 		switch op {
 		case 1: 
-			if c.mode == Position {
+			if c.mode == position {
 				c.positionOperation(c.add)
 			} else {
 				c.add(c.getParams())
 			}
 			c.Index += 4
 		case 2:
-			if c.mode == Position {
+			if c.mode == position {
 				c.positionOperation(c.multiply)
 			} else {
 				c.multiply(c.getParams())
@@ -34,13 +34,13 @@ func (c *Computer) Run(output chan int, done chan bool) {
 			c.Index += 2
 			c.Status = paused
 		case 5:
-			if c.mode == Position {
+			if c.mode == position {
 				c.jump(true)
 			} else {
 				c.paramJump(c.getParams(), true)
 			}
 		case 6:
-			if c.mode == Position {
+			if c.mode == position {
 				c.jump(false)
 			} else {
 				c.paramJump(c.getParams(), false)
@@ -51,6 +51,13 @@ func (c *Computer) Run(output chan int, done chan bool) {
 		case 8:
 			c.equal(c.getParams())
 			c.Index += 4
+		case 9:
+			if c.mode == position {
+				c.offset()
+			} else {
+				c.paramOffset(c.getParams())
+			}
+			c.Index += 2
 		case 99:
 			c.Status = Halted
 			done<-true
@@ -63,18 +70,19 @@ func (c *Computer) Run(output chan int, done chan bool) {
 
 func (c Computer) getOpCode() int {
 	code := c.Data[c.Index]
-	if c.mode == Position {
+	if c.mode == position {
 		return code
 	}
 	return code % 10
 }
 
 func (c *Computer) setMode() {
-	if c.Data[c.Index] > 100 {
-		c.mode = Parameter
+	code := c.Data[c.Index]
+	if code > 100 {
+		c.mode = parameter
 		return
 	}
-	c.mode = Position
+	c.mode = position
 }
 
 func (c Computer) getParams() [3]int {
@@ -84,8 +92,10 @@ func (c Computer) getParams() [3]int {
 	for idx := 0; idx < 3; idx++ {
 		if code % 10 == 0 {
 			params[idx] = c.Data[c.Index+1+idx]
-		} else {
+		} else if code % 10 == 1 {
 			params[idx] = c.Index+1+idx
+		} else {
+			params[idx] = c.relativeBase + c.Data[c.Index+1+idx]
 		}
 		code /= 10
 	}
@@ -110,18 +120,23 @@ func (c Computer) multiply(params [3]int) {
 }
 
 func (c *Computer) store() {
-	position := c.Data[c.Index+1]
+	var idx int
+	if c.mode == position {
+		idx = c.Data[c.Index+1]
+	} else {
+		idx = c.getParams()[0]
+	}
 	if c.phasemode {
-		c.Data[position] = c.phase
+		c.Data[idx] = c.phase
 		c.phasemode = false
 		return
 	}
-	c.Data[position] = c.Input
+	c.Data[idx] = c.Input
 }
 
 func (c Computer) getOutput() int {
 	var pos int
-	if c.mode == Position {
+	if c.mode == position {
 		pos = c.Data[c.Index+1]
 	} else {
 		pos = c.getParams()[0]
@@ -165,6 +180,15 @@ func (c Computer) equal(params [3]int) {
 		return
 	}
 	c.Data[params[2]] = 0
+}
+
+func (c *Computer) offset() {
+	pos := c.Data[c.Index+1] 
+	c.relativeBase += c.Data[pos]
+}
+
+func (c *Computer) paramOffset(params [3]int) {
+	c.relativeBase += c.Data[params[0]]
 }
 
 func (c Computer) Shutdown() {
