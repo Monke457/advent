@@ -48,17 +48,17 @@ func NewComputer(rawdata []int, phase, input int, phasemode bool) Computer {
 }
 
 func (c Computer) Error(msg string) error {
-	pre := "\nError:\n" 
+	pre := "\nError:" 
 	divider := strings.Repeat("-", 20)
 	return fmt.Errorf(
-		"\n%s%s%s%s %s%s\n\n", 
+		"\n%s%s%s%s %s\n%s\n\n", 
 		divider, c.Sprint(), divider, pre, msg, divider,
 	)
 }
 
 func (c Computer) Sprint() string {
 	str := fmt.Sprintf(
-		"\nCOMPUTER\nData: %v\nIndex: %d\nData at Index: %d\nMode: %d\n Status: %d\nPhase: %d\nInput: %d\nIn phase mode: %v\nRelative base: %d", 
+		"\nCOMPUTER\nData: %v\nIndex: %d\nData at Index: %d\nMode: %d\n Status: %d\nPhase: %d\nInput: %d\nIn phase mode: %v\nRelative base: %d\n", 
 		c.Data, c.Index, c.Data[c.Index], c.mode, c.Status, c.phase, c.Input, c.phasemode, c.relativeBase,
 	)
 	return str 

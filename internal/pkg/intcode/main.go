@@ -30,9 +30,10 @@ func (c *Computer) Run(output chan int, done chan bool) {
 			c.store()
 			c.Index += 2
 		case 4:
-			output<-c.getOutput()
-			c.Index += 2
+			out := c.getOutput()
 			c.Status = paused
+			c.Index += 2
+			output<-out
 		case 5:
 			if c.mode == position {
 				c.jump(true)
