@@ -4,7 +4,7 @@ import (
 	ic "advent/internal/pkg/intcode"
 	"advent/internal/pkg/reader"
 	"fmt"
-	"os"
+	"time"
 )
 
 type tileType int 
@@ -22,133 +22,107 @@ type tile struct {
 	id tileType
 }
 
-type result struct {
-	score int
-	done bool
+type model struct {
+	comp ic.Computer
+	tiles [24][45]tile
+	score int 
+	ch chan bool
 }
 
 func main() {
 	data := reader.FileToIntArrayByComma("data/2019/day13.txt")
 
-	ch := make(chan byte)
-	go readInput(ch)
+	mod := initialModel(data)
 
-	data[0] = 2
-	comp := ic.NewComputer(data, 0, 0, false)
-	res := make(chan result)
-	go run(comp, ch, res)
+	// hack paddle blocks along bottom
+	for pos := 1585; pos <= 1627; pos++ {
+		mod.comp.Data[pos] = 3; 
+	}
+
+	// I am so confused. Why does it behave like this? :(
+	go mod.runGame()
+
 	for {
 		select {
-		case r :=<-res:
-			if r.done == true {
-				fmt.Printf("Final Score: %s\n\r", r.score)
-				return
-			}
-			fmt.Printf("New Score: %s\n\r", r.score)
-		}
-	}
-}
-
-func readInput(ch chan byte) {
-	b := make([]byte, 1)
-	for {
-		_, err := os.Stdin.Read(b)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		ch<-b[0]
-		if b[0] == 113 {
+		case <-time.After(50 * time.Millisecond):
+			mod.drawGame()
+		case <-mod.ch:
+			fmt.Println("Game over. Final score:", mod.score)
 			return
 		}
 	}
 }
 
-func run(comp ic.Computer, ch chan byte, res chan result) int {
+func initialModel(data []int) model {
+	data[0] = 2
+	comp := ic.NewComputer(data, 0, 0, false)
+	tiles := [24][45]tile{}
+	ch := make(chan bool)
+	return model{comp: comp, tiles: tiles, ch: ch}
+}
+
+func (m *model) runGame() {
 	idx := 0
-	tiles := []tile{}
-	result := result{}
 	var current tile
+
 	for {
 		out := make(chan int)
 		done := make(chan bool)
-		go comp.Run(out, done)
+		go m.comp.Run(out, done)
 		select {
-		case input :=<-ch:
-			if input == 104 {
-				comp.Input = -1
-			} else if input == 108 {
-				comp.Input = 1
-			}
 		case output := <-out:
-			switch idx % 3 {
+			switch idx {
 			case 0:
 				current = tile{x:output}
 			case 1: 
 				current.y = output
 			case 2:
-				if current.x == -1 && current.y == 0 {
-					result.score = output
-					res<-result
+				if current.x == -1 && current.y == 0 {	
+					m.score = output
 					continue
 				}
 				current.id = tileType(output)
-				tiles = append(tiles, current) 
+				m.tiles[current.y][current.x] = current
 			}
-			idx++	
+			idx = (idx+1)%3
 		case <-done:
-			drawGame(tiles)
-			fmt.Printf("finished, but now what?\n\r")
+			m.ch<-true
+			return 
 		}
-		comp.Input = 0
 	}
 }
 
-func drawGame(tiles []tile) {
-	if len(tiles) == 0 {
+func (m *model) drawGame() {
+	if len(m.tiles) == 0 {
 		return
 	}
-	w, h := getSize(tiles)
-	grid := make([][]tileType, h)
-	for i := range h {
-		grid[i] = make([]tileType, w)
-	}
 
-	for _, tile := range tiles {
-		grid[tile.y][tile.x] = tile.id
-	}
-
-	fmt.Print("\rGAME\n\r")
-	for _, row := range grid {
-		for _, cell := range row {
-			switch cell {
+	result := ""
+	for i, row := range m.tiles {
+		for j, cell := range row {
+			switch cell.id {
 			case empty:
-				fmt.Printf(" ")
+				result += fmt.Sprintf(" ")
 			case wall:
-				fmt.Printf("|")
+				if i == 0 {
+					if j == 0 || j == len(row) -1 {
+						result += fmt.Sprintf(" ")
+						break
+					}
+					result += fmt.Sprintf("_")
+					break
+				}
+				result += fmt.Sprintf("|")
 			case block:
-				fmt.Printf("0")
+				result += fmt.Sprintf("=")
 			case paddle:
-				fmt.Printf("_")
+				result += fmt.Sprintf("_")
 			case ball:
-				fmt.Printf(".")
+				result += fmt.Sprintf(".")
 			}
 		}
-		fmt.Printf("\n\r")
+		result += fmt.Sprintf("\n\r")
 	}
-	fmt.Printf("\n\n\r")
-}
-
-func getSize(tiles []tile) (int, int) {
-	w := 0
-	h := 0
-	for _, tile := range tiles {
-		if tile.x > w {
-			w = tile.x
-		}
-		if tile.y > h {
-			h = tile.y
-		}
-	}
-	return w+1, h+1
+	result += fmt.Sprintf("Score: %d\n\n\r", m.score)
+	fmt.Print(result)
 }
