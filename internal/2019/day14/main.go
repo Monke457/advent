@@ -3,9 +3,9 @@ package main
 import (
 	"advent/internal/pkg/reader"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var cache = map[string]int{}
@@ -35,50 +35,44 @@ func main() {
 
 		reactions[name] = func(n int) int {
 			ore := 0
+			if cache[name] >= n {
+				cache[name] -= n
+				return ore 
+			}
+			total := int(math.Ceil(float64((n - cache[name])) / float64(yields[name])))
 			for key, val := range fnParts {
-				if cache[key] < val {
-					ore += reactions[key](val)
+				needed := total * val 
+				if cache[key] < needed {
+					ore += reactions[key](needed)
+				} else {
+					cache[key] -= needed
 				}
-				cache[key] -= val 
 			}
-			cache[name] += yields[name]
-			if cache[name] < n {
-				return ore + reactions[name](n)
-			}
+			cache[name] += total * yields[name] - n
 			return ore 
 		}
 	}
 
-	total := reactions[target](1)
-	fmt.Println("First:", total)
+	first := reactions[target](1)
+	fmt.Println("First:", first)
 
-	start := time.Now()
+	fuel := 1
 	for {
-		total += reactions[target](1)
-		fmt.Printf("%s: %d       %s: %d       %v\t\t\r", target, cache[target], base, cache[base]*-1, time.Since(start))
-		if zeroCache() {
-			fmt.Println("Zero cache found", cache)
+		resetCache()
+		result := reactions[target](fuel+1)
+		if result > trillion {
 			break
 		}
-		if total >= trillion {
-			fmt.Println()
-			break
-		}
+		fuel = max(fuel + 1, int(math.Floor(float64((fuel + 1) * trillion / result))));
 	}
 
-	fmt.Println("Second:", cache[target] * trillion / total)
+	fmt.Println("Second:", fuel)
 }
 
-func zeroCache() bool {
-	for key, val := range cache {
-		if key == target || key == base {
-			continue
-		}
-		if val > 0 {
-			return false
-		}
+func resetCache() {
+	for key := range cache {
+		delete(cache, key)
 	}
-	return true
 }
 
 func mapFunction(fn string) map[string]int {
