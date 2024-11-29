@@ -22,7 +22,7 @@ const (
 	wall tile = '#'
 	droid = 'D'
 	floor = '.'
-	system= 'O'
+	oxy = 'O'
 )
 
 var area = map[[2]int]tile{}
@@ -34,19 +34,28 @@ func main() {
 	area[d] = droid
 	comp := ic.NewComputer(data, 0, int(north), false) 
 
-	steps, found := run(d, comp)
+	steps := run(d, comp)
 
 	drawArea()
-	if found {
-		fmt.Println("Steps to find system:", steps)
-	} else {
-		fmt.Println("System not found")
+	fmt.Println("Steps to find system:", steps)
+
+	mins := 0
+	for {
+		if flooded() {
+			break
+		}
+		floodArea()
+		mins++
 	}
+
+	drawArea()
+	fmt.Println("Mins to flood (incorrect)", mins) 
 }
 
-func run(d [2]int, comp ic.Computer) (int, bool) {
+func run(d [2]int, comp ic.Computer) int {
 	steps := []cmd{}
 	retracing := false
+	var foundIn int 
 	for {
 		out := make(chan int)
 		done := make(chan bool)
@@ -56,57 +65,88 @@ func run(d [2]int, comp ic.Computer) (int, bool) {
 			switch output {
 			case 0:
 				markTile(d, cmd(comp.Input), wall)
-				dir, found := findUnexplored(d)
-				if !found {
-					retracing = true
-					switch steps[len(steps)-1] {
-					case north:
-						comp.Input = int(south)
-					case south:
-						comp.Input = int(north)
-					case west:
-						comp.Input = int(east)
-					case east:
-						comp.Input = int(west)
-					}
-					steps = steps[:len(steps)-1]
-				} else {
-					retracing = false
-					comp.Input = dir
-				}
+				steps, comp.Input, retracing = getNextStep(d, steps)
 			case 1:
-				markTile(d, 0, floor)
+				if area[d] != oxy {
+					markTile(d, 0, floor)
+				}
 				d = markTile(d, cmd(comp.Input), droid)
 				if retracing {
-					dir, found := findUnexplored(d)
-					if !found {
-						switch steps[len(steps)-1] {
-						case north:
-							comp.Input = int(south)
-						case south:
-							comp.Input = int(north)
-						case west:
-							comp.Input = int(east)
-						case east:
-							comp.Input = int(west)
-						}
-						steps = steps[:len(steps)-1]
-					} else {
-						retracing = false
-						comp.Input = dir
-					}
+					steps, comp.Input, retracing = getNextStep(d, steps)
 				} else {
 					steps = append(steps, cmd(comp.Input))
 				}
 			case 2:
-				markTile(d, 0, system)
-				return len(steps)+1, true
+				markTile(d, 0, oxy)
+				steps = append(steps, cmd(comp.Input))
+				foundIn = len(steps) 
 			}
 		case <-done:
 			fmt.Println("Computer shutdown")
-			return len(steps)+1, false
+			return foundIn 
 		}
 	}
+}
+
+func flooded() bool {
+	for _, val := range area {
+		if val == floor || val == droid {
+			return false
+		}
+	}
+	return true
+}
+
+func getNeighbours(pos [2]int) [][2]int {
+	result := [][2]int{}
+	n := [2]int{pos[0]-1, pos[1]}
+	s := [2]int{pos[0]+1, pos[1]}
+	e := [2]int{pos[0], pos[1]+1}
+	w := [2]int{pos[0], pos[1]-1}
+	if area[n] == floor || area[n] == droid {
+		result = append(result, n)
+	}
+	if area[s] == floor || area[s] == droid {
+		result = append(result, s)
+	}
+	if area[e] == floor || area[e] == droid {
+		result = append(result, e)
+	}
+	if area[w] == floor || area[w] == droid {
+		result = append(result, w)
+	}
+	return result
+}
+
+func floodArea() {
+	marked := [][2]int{}
+	for key, val := range area {
+		if val == oxy {
+			marked = append(marked, getNeighbours(key)...)
+		}
+	}
+	for _, m := range marked {
+		area[m] = oxy
+	}
+}
+
+func getNextStep(pos [2]int, steps []cmd) ([]cmd, int, bool){
+	dir, found := findUnexplored(pos)
+	if found {
+		return steps, dir, false
+	}
+	if len(steps) == 0 {
+		return steps, 0, false
+	}
+	switch steps[len(steps)-1] {
+	case north:
+		return steps[:len(steps)-1], int(south), true 
+	case south:
+		return steps[:len(steps)-1], int(north), true 
+	case west:
+		return steps[:len(steps)-1], int(east), true 
+	}
+	return steps[:len(steps)-1], int(west), true 
 }
 
 func findUnexplored(d [2]int) (int, bool) {
