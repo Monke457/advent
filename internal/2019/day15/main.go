@@ -31,7 +31,6 @@ func main() {
 	data := reader.FileToIntArrayByComma("data/2019/day15.txt")
 
 	d := [2]int{0, 0}
-	area[d] = droid
 	comp := ic.NewComputer(data, 0, int(north), false) 
 
 	steps := run(d, comp)
@@ -64,25 +63,30 @@ func run(d [2]int, comp ic.Computer) int {
 		case output := <-out:
 			switch output {
 			case 0:
-				markTile(d, cmd(comp.Input), wall)
+				area[move(d, cmd(comp.Input))] = wall
 				steps, comp.Input, retracing = getNextStep(d, steps)
 			case 1:
 				if area[d] != oxy {
-					markTile(d, 0, floor)
+					area[d] = floor 
 				}
-				d = markTile(d, cmd(comp.Input), droid)
-				if retracing {
-					steps, comp.Input, retracing = getNextStep(d, steps)
-				} else {
+				d = move(d, cmd(comp.Input))
+				if !retracing {
 					steps = append(steps, cmd(comp.Input))
 				}
+				steps, comp.Input, retracing = getNextStep(d, steps)
 			case 2:
-				markTile(d, 0, oxy)
-				steps = append(steps, cmd(comp.Input))
-				foundIn = len(steps) 
+				area[d] = floor
+				d = move(d, cmd(comp.Input))
+				area[d] = oxy 
+				if !retracing {
+					steps = append(steps, cmd(comp.Input))
+					foundIn = len(steps) 
+				}
+				steps, comp.Input, retracing = getNextStep(d, steps)
 			}
 		case <-done:
 			fmt.Println("Computer shutdown")
+			area[d] = droid
 			return foundIn 
 		}
 	}
@@ -99,10 +103,10 @@ func flooded() bool {
 
 func getNeighbours(pos [2]int) [][2]int {
 	result := [][2]int{}
-	n := [2]int{pos[0]-1, pos[1]}
-	s := [2]int{pos[0]+1, pos[1]}
-	e := [2]int{pos[0], pos[1]+1}
-	w := [2]int{pos[0], pos[1]-1}
+	n := move(pos, north)
+	s := move(pos, south)
+	e := move(pos, east)
+	w := move(pos, west)
 	if area[n] == floor || area[n] == droid {
 		result = append(result, n)
 	}
@@ -145,40 +149,40 @@ func getNextStep(pos [2]int, steps []cmd) ([]cmd, int, bool){
 		return steps[:len(steps)-1], int(north), true 
 	case west:
 		return steps[:len(steps)-1], int(east), true 
+	case east:
+		return steps[:len(steps)-1], int(west), true 
 	}
-	return steps[:len(steps)-1], int(west), true 
+	panic("Something bad happen")
 }
 
-func findUnexplored(d [2]int) (int, bool) {
-	if _, ok := area[[2]int{d[0]-1, d[1]}]; !ok {
+func move(pos [2]int, dir cmd) [2]int {
+	switch dir {
+	case north:
+		return [2]int{pos[0]-1, pos[1]}
+	case east:
+		return [2]int{pos[0], pos[1]+1}
+	case south:
+		return [2]int{pos[0]+1, pos[1]}
+	case west:
+		return [2]int{pos[0], pos[1]-1}
+	}
+	return pos
+}
+
+func findUnexplored(pos [2]int) (int, bool) {
+	if _, ok := area[move(pos, north)]; !ok {
 		return int(north), true
 	}
-	if _, ok := area[[2]int{d[0]+1, d[1]}]; !ok {
-		return int(south), true
-	}
-	if _, ok := area[[2]int{d[0], d[1]+1}]; !ok {
+	if _, ok := area[move(pos, east)]; !ok {
 		return int(east), true
 	}
-	if _, ok := area[[2]int{d[0], d[1]-1}]; !ok {
+	if _, ok := area[move(pos, south)]; !ok {
+		return int(south), true
+	}
+	if _, ok := area[move(pos, west)]; !ok {
 		return int(west), true
 	}
 	return 0, false
-}
-
-func markTile(d [2]int, i cmd, t tile) [2]int {
-	coord := [2]int{d[0], d[1]}
-	switch i {
-	case north:
-		coord[0]-=1
-	case south:
-		coord[0]+=1
-	case west:
-		coord[1]-=1
-	case east:
-		coord[1]+=1
-	}
-	area[coord] = t
-	return coord
 }
 
 func drawArea() {
