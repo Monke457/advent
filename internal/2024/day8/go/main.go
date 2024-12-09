@@ -13,18 +13,9 @@ func main() {
 	antennae := parseAntennae(data)
 
 	antinodes := map[[2]int]bool{}
-	for k, positions := range antennae { 
-		if k == '9' {
-			fmt.Println(positions)
-			fmt.Println(positions[0])
-			fmt.Println(positions[1])
-			fmt.Println(positions[2])
-			fmt.Println(positions[3])
-		}
-
+	for _, positions := range antennae { 
 		for i := 0; i < len(positions); i++ {
 			for j := i+1; j < len(positions); j++ {
-				fmt.Println(i, j)
 				for key := range getAntinodes(data, positions[i], positions[j]) {
 					antinodes[key] = true
 				}
@@ -32,7 +23,6 @@ func main() {
 		}
 	}
 
-	fmt.Println(antennae['9'])
 	draw(data)
 	fmt.Println("Antinodes:", len(antinodes))
 }
@@ -44,22 +34,17 @@ func getAntinodes(data [][]rune, a, b [2]int) map[[2]int]bool {
 	c := float64(xDiff) / float64(yDiff)
 	m := float64(a[1]) - float64(a[0]) * c
 
-	fmt.Println("plots:", a, b, "yDiff", yDiff, "xDiff", xDiff, "c=", c, "m=", m)
 	for y := 0; y < len(data); y++ {
 		res := c * float64(y) + m
 		if math.Abs(res - math.Round(res)) > 0.00001 {
-			fmt.Println("skipping", y, res)
 			continue
 		}
 		x := int(math.Round(res))
 		if inBounds(data, y, x) {
-			//fmt.Println("adding", y, res)
 			nodes[[2]int{y, x}] = true
 			if data[y][x] == '.' {
 				data[y][x] = '#'
 			}
-		} else {
-			//fmt.Println("oob", y, res)
 		}
 	}
 	return nodes
