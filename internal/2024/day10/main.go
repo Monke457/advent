@@ -52,33 +52,21 @@ func evaluateTrail(data [][]int, start [2]int, y, x int) (int, int) {
 		return 1, 1
 	}
 
-	next := val+1
-	n := [2]int{y-1, x}
-	e := [2]int{y, x+1}
-	s := [2]int{y+1, x}
-	w := [2]int{y, x-1}
+	dirs := [][2]int{
+		{y-1, x},
+		{y, x+1},
+		{y+1, x},
+		{y, x-1},
+	}
 
 	score := 0
 	rating := 0
-	if !oob(data, n[0], n[1]) && data[n[0]][n[1]] == next {
-		s, r := evaluateTrail(data, start, n[0], n[1])
-		score += s
-		rating += r
-	}
-	if !oob(data, e[0], e[1]) && data[e[0]][e[1]] == next {
-		s, r := evaluateTrail(data, start, e[0], e[1])
-		score += s
-		rating += r
-	}
-	if !oob(data, s[0], s[1]) && data[s[0]][s[1]] == next {
-		s, r := evaluateTrail(data, start, s[0], s[1])
-		score += s
-		rating += r
-	}
-	if !oob(data, w[0], w[1]) && data[w[0]][w[1]] == next {
-		s, r := evaluateTrail(data, start, w[0], w[1])
-		score += s
-		rating += r
+	for _, d := range dirs {
+		if !oob(data, d[0], d[1]) && data[d[0]][d[1]] == val+1 {
+			s, r := evaluateTrail(data, start, d[0], d[1])
+			score += s
+			rating += r
+		}
 	}
 	return score, rating
 }
