@@ -3,7 +3,6 @@ package main
 import (
 	"advent/internal/pkg/reader"
 	"fmt"
-	"strconv"
 )
 
 func main() {
@@ -16,20 +15,19 @@ func main() {
 	fmt.Println("Checksum:", checksum)
 }
 
-func CreateChecksum(files []string) int {
+func CreateChecksum(files []int) int {
 	var total int = 0
 	for i := 0; i < len(files); i++ {
-		num, _ := strconv.Atoi(files[i]) 
-		total += num * i
+		total += files[i] * i
 	} 
 	return total 
 }
 
-func SortBlocks(blocks []string) []string {
-	sorted := []string{}
+func SortBlocks(blocks []*int) []int {
+	sorted := []int{}
 
 	last := len(blocks)-1
-	for blocks[last] == "." {
+	for blocks[last] == nil { 
 		last--
 	}
 
@@ -37,12 +35,12 @@ func SortBlocks(blocks []string) []string {
 		if i > last {
 			break
 		}
-		if blocks[i] != "." {
-			sorted = append(sorted, blocks[i])
+		if blocks[i] != nil {
+			sorted = append(sorted, *blocks[i])
 		} else {
-			sorted = append(sorted, blocks[last])
+			sorted = append(sorted, *blocks[last])
 			last--
-			for blocks[last] == "." {
+			for blocks[last] == nil {
 				last--
 			}
 		}
@@ -51,38 +49,17 @@ func SortBlocks(blocks []string) []string {
 	return sorted
 }
 
-func getFill(blocks []int, length int) []int {
-	res := []int{}
-	last := len(blocks)-1
-	val := blocks[last-1]
-	count := blocks[last]
-	for {
-		if length <= 0 {
-			break
-		}
-		if count >= length {
-			res = append(res, val, length)
-			break
-		}
-		res = append(res, val, count)
-		length -= count
-		last -= 3
-		val = blocks[last-1]
-		count = blocks[last]
-	}
-	return res
-}
-
-func ParseBlocks(numstr string) []string {
-	blocks := []string{}
+func ParseBlocks(numstr string) []*int {
+	blocks := []*int{}
 	var idx int = 0
 	for i, num := range numstr {
 		even := i % 2 == 0
 		for range int(num) - 48 {
 			if even {
-				blocks = append(blocks, strconv.Itoa(idx))
+				entry := idx
+				blocks = append(blocks, &entry)
 			} else {
-				blocks = append(blocks, ".") 
+				blocks = append(blocks, nil) 
 			}
 		}
 		if even {
