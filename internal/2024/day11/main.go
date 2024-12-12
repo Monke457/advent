@@ -21,27 +21,18 @@ func transformStones(stones []int, n int) int {
 		return len(stones)
 	}
 
-	temp := []int{}
-	mul := map[int]int{}
+	counts := map[int]int{}
 
 	for _, stone := range stones {
 		if stone == 0 {
-			mul[1]++
-			if mul[1] > 1 {
-				continue
-			}
-			temp = append(temp, 1)
+			counts[1]++
 			continue
 		}
 
 		numstr := strconv.Itoa(stone)
 		if len(numstr) % 2 != 0 {
 			num := stone * 2024
-			mul[num]++
-			if mul[num] > 1 {
-				continue
-			}
-			temp = append(temp, num)
+			counts[num]++
 			continue
 		}
 
@@ -50,35 +41,23 @@ func transformStones(stones []int, n int) int {
 		l, _ := strconv.Atoi(left)
 		r, _ := strconv.Atoi(right)
 
-		mul[l]++
-		if mul[l] <= 1 {
-			temp = append(temp, l)
-		}
-
-		mul[r]++
-		if mul[r] <= 1 {
-			temp = append(temp, r)
-		}
+		counts[l]++
+		counts[r]++
 	}
 
-	arr := []int{}
 	l := 0
-	for _, t := range temp {
-		if _, ok := cache[t]; !ok {
-			cache[t] = map[int]int{}
+	for s, v := range counts{
+		if _, ok := cache[s]; !ok {
+			cache[s] = map[int]int{}
 		}
-		if _, ok := cache[t][n-1]; ok {
-			l += max(mul[t], 1) * cache[t][n-1]
+		if _, ok := cache[s][n-1]; ok {
+			l += v * cache[s][n-1]
 			continue
 		}
 
-		if v, ok := mul[t]; ok {
-			res := transformStones([]int{t}, n-1)
-			cache[t][n-1] = res
-			l += v * cache[t][n-1]
-		} else {
-			arr = append(arr, t)
-		}
+		res := transformStones([]int{s}, n-1)
+		cache[s][n-1] = res
+		l += v * res
 	}
-	return l + transformStones(arr, n-1)
+	return l
 }
