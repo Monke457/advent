@@ -48,10 +48,11 @@ func multiplyCoords(coords [2]int, m int) (int, int) {
 }
 
 func (m machine) calculate(adjust int) int {
-	c, d := m.prize[0] + adjust, m.prize[1] + adjust
-	x1, y1, x2, y2 := m.a[0], m.a[1], m.b[0], m.b[1] 
-	a := float64((c*y2 - d*x2)) / float64((x1*y2 - y1*x2))
-	b := float64((d*x1 - c*y1)) / float64((x1*y2 - y1*x2))
+	px, py := m.prize[0] + adjust, m.prize[1] + adjust
+	ax, ay, bx, by := m.a[0], m.a[1], m.b[0], m.b[1] 
+
+	a := float64((px*by - py*bx)) / float64((ax*by - ay*bx))
+	b := float64((py*ax - px*ay)) / float64((ax*by - ay*bx))
 	if math.Round(a) == a && math.Round(b) == b {
 		return int(3 * a + b)
 	}
