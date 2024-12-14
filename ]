@@ -1,0 +1,18 @@
+package main
+
+import (
+	"advent/internal/pkg/reader"
+	"fmt"
+	"math"
+)
+
+func main() {
+	data := reader.FileToString("data/2018/day5.txt")
+
+	fmt.Println(data)
+	for i := 0; i < len(data)-1; i++ {
+		if math.Abs(float64(data[i] - data[i+1])) == 32 {
+			data = data[:i] + data[i+1:]
+		}
+	}
+}
