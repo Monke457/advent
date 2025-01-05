@@ -26,11 +26,15 @@ func main() {
 		val <<= 3
 	}
 
-	for !slices.Equal(output, program) {
-		fmt.Println("looking for correct positions starting from val", val)
-		fmt.Println("currently", countCorrect(program, output), "correct")
+	fmt.Println("looking for correct positions")
+	loop:
+	for {
+		fmt.Println("currently", countCorrect(program, output), "correct\n", output, "\n", program)
 		for i := 0; i < len(program); i++ {
 			val, output = runIncrement(program, val, regB, regC, i)
+			if slices.Equal(output, program) {
+				break loop
+			}
 		}
 	}
 
@@ -41,7 +45,7 @@ func main() {
 func countCorrect(original, output []int) int {
 	correct := 0
 	for i := 0; i < len(original) && i < len(output); i++ {
-		if original[0] == output[i] {
+		if original[i] == output[i] {
 			correct++
 		}
 	}
@@ -49,12 +53,9 @@ func countCorrect(original, output []int) int {
 }
 
 func runIncrement(program []int, a, c, b, pos int) (int, []int) {
-	inc := 1000000000
-	for range len(program) - pos - 1 {
-		if inc == 1 {
-			break
-		}
-		inc /= 10
+	inc := 1
+	for i := 0; i < pos; i+=2 {
+		inc *= 10
 	}
 	out := []int{}
 
