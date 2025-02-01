@@ -3,24 +3,21 @@
 
 Run all solutions from the root advent directory (this directory).
 
-#### Running go solutions
+#### Running go or cpp solutions
 
 >```
->go run path/to/file/main.go
+>./run [lang] [year] [day]
 >```
->example
+>examples
 >```
->go run internal/2024/day1/go/main.go
+>./run go 2024 21
+>./run cpp 2024 1
 >```
 
 ---
 
-#### Running cpp solutions
+#### Running other solutions
 
 >```
->g++ -o bin/[year]_[day] path/to/file/main.cpp && ./bin/[year]_[day]
->```
->example
->```
->g++ -o bin/2024_1 internal/2024/day1/cpp/main.cpp && ./bin/2024_1
+>You're on your own...
 >```
