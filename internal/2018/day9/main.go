@@ -44,10 +44,7 @@ func main() {
 		}
 		fmt.Printf("\r%d/%d   ", current.Value, maxpoints)
 	}
-	//fmt.Println(rounds)
-
 	fmt.Println("Highest score:", getHighest(scores))
-
 }
 
 func getHighest(scores map[int]int) int {
@@ -58,18 +55,4 @@ func getHighest(scores map[int]int) int {
 		}
 	}
 	return highest
-}
-
-func Insert(original []int, index, value int) []int {
-	if index >= len(original) {
-		return append(original, value)
-	}
-	if index == 0 {
-		return append([]int{0, value}, original[1:]...)
-	}
-	arr := make([]int, len(original)+1)
-	arr[index] = value
-	copy(arr[:index], original[:index])
-	copy(arr[index+1:], original[index:])
-	return arr
 }
