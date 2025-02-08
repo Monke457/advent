@@ -24,22 +24,44 @@ func main() {
 	rounds := parseNums(strings.Split(data[0], ",")) 
 	boards := parseBoards(data[2:])
 
-	end := false
+	var firstScore int
+	var finalScore int
+
+	loop:
 	for _, round := range rounds {
-		for _, board := range boards {
+		for i, board := range boards {
+			if len(boards) < 1 {
+				panic("Big problem!")
+			}
 			board.playRound(round)
 			if board.win() {
-				fmt.Println("BINGO!!")
-				board.print()
-				end = true
+				if len(boards) == 1 {
+					finalScore = board.sumNonHits() * round
+					break loop
+				}
+				if firstScore == 0 {
+					firstScore = board.sumNonHits() * round
+				}
+				delete(boards, i)
 			}
-		}
-		if end {
-			break
 		}
 	}
 
-	fmt.Println("First:", 0)
+	fmt.Println("First:", firstScore)
+	fmt.Println("Last:", finalScore)
+}
+
+func (b board) sumNonHits() int {
+	sum := 0
+	for _, row := range b.cells {
+		for _, cell := range row {
+			if cell.hit {
+				continue
+			}
+			sum += cell.val
+		}
+	}
+	return sum
 }
 
 func (b board) win() bool {
@@ -84,19 +106,20 @@ func (b board) playRound(val int) bool {
 	return false
 }
 
-func parseBoards(data []string) []board {
-	boards := []board{}
+func parseBoards(data []string) map[int]board {
+	boards := map[int]board{}
 	cells := [][]*cell{}
 	i := 1
 	for _, line := range data {
 		if len(line) == 0 {
-			boards = append(boards, board{ id: i, cells: cells }) 
+			boards[i] = board{ id:i, cells: cells }
 			cells = [][]*cell{}
 			i++
 			continue
 		}
 		cells = append(cells, parseCells(strings.Split(line, " ")))
 	}
+	boards[i] = board{ id: i, cells: cells }
 	return boards
 }
 
