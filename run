@@ -5,7 +5,7 @@ Help()
    # Display Help
    echo "This script will run the program in the given language for a given year and day."
    echo
-   echo "languages: go | cpp" 
+   echo "languages: go | cpp | zig" 
    echo
    echo "./run go 2024 24"
    echo "This runs the program for the 24th day of 2024 in go"
@@ -43,6 +43,22 @@ elif [ ${1} == "cpp" ]; then
 
 	elif [ -f $alt ]; then
 		g++ -o "bin/${2}_${3}" $alt
+		."/bin/${2}_${3}"
+
+	else 
+		echo "I couldn't find the main file, brother..."
+	fi
+
+elif [ ${1} == "zig" ]; then
+	file="internal/${2}/day${3}/zig/main.zig"
+	alt="internal/${2}/day${3}/main.zig"
+
+	if [ -f $file ]; then
+		zig build-exe $file -femit-bin="bin/${2}_${3}"
+		."/bin/${2}_${3}"
+
+	elif [ -f $alt ]; then
+		zig build-exe $alt -femit-bin="bin/${2}_${3}"
 		."/bin/${2}_${3}"
 
 	else 

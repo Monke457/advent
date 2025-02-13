@@ -3,7 +3,7 @@ const print = std.debug.print;
 const cal = 52;
 
 pub fn main() !void {
-    const file = try std.fs.cwd().openFile("../../../data/2022/day3.txt", .{});
+    const file = try std.fs.cwd().openFile("data/2022/day3.txt", .{});
     defer file.close();
 
     const reader = file.reader();
@@ -37,7 +37,6 @@ pub fn main() !void {
             continue;
         }
         line += 1;
-
     } else |err| {
         print("Error while reading the file: {}\n", .{err});
     }
@@ -75,7 +74,7 @@ fn getDupes(front: []u8, back: []u8) [cal]u8 {
             continue;
         }
         if (contains(u8, back, char)) {
-            result[idx] = char; 
+            result[idx] = char;
             idx += 1;
             continue;
         }

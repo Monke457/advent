@@ -1,9 +1,8 @@
 const std = @import("std");
 const print = std.debug.print;
 
-
 pub fn main() void {
-    const file = std.fs.cwd().openFile("../../../data/2022/day2.txt", .{}) catch |err| {
+    const file = std.fs.cwd().openFile("data/2022/day2.txt", .{}) catch |err| {
         print("Could not open file: {}\n", .{err});
         std.process.exit(1);
     };
