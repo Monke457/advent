@@ -69,14 +69,12 @@ func main() {
 		sum += size
 	}
 
-	fmt.Println(sizemap)
 	fmt.Println("Sum:", sum)
 
 	total := 70000000
 	required := 30000000
 	free := total - sizemap["/"]
 	target := required - free
-	fmt.Println(total, free, required, target)
 
 
 	marked := markForDeletion(sizemap, target)
