@@ -1,8 +1,11 @@
 module advent
 
-go 1.22.2
+go 1.23.1
 
-require github.com/charmbracelet/bubbletea v0.26.6
+require (
+	github.com/Monke457/printge v0.0.2
+	github.com/charmbracelet/bubbletea v0.26.6
+)
 
 require (
 	github.com/charmbracelet/x/ansi v0.1.2 // indirect
