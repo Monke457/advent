@@ -1,5 +1,29 @@
 package grid
 
+func GetNeighboursCont[T comparable](data [][]T, pos [2]int) [][2]int {
+	neighbours := [][2]int{}
+	for _, dir := range dirsCont {
+		y, x := pos[0] + dir[0], pos[1] + dir[1]
+		if oob(data, y, x) {
+			continue
+		}
+		neighbours = append(neighbours, [2]int{y, x})
+	}
+	return neighbours
+}
+
+func GetNeighbours[T comparable](data [][]T, pos [2]int) [][2]int {
+	neighbours := [][2]int{}
+	for _, dir := range dirs {
+		y, x := pos[0] + dir[0], pos[1] + dir[1]
+		if oob(data, y, x) {
+			continue
+		}
+		neighbours = append(neighbours, [2]int{y, x})
+	}
+	return neighbours
+}
+
 func Neighbours2D() [][]int {
 	return [][]int {
 		{-1, -1},
