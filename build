@@ -1,0 +1,69 @@
+#!/bin/bash
+
+Help()
+{
+   # Display Help
+   echo "This script will build a binary of a program in the given language for a given year and day."
+   echo
+   echo "languages: go | cpp | zig" 
+   echo
+   echo "./build go 2024 24"
+   echo "This builds the program for the 24th day of 2024 in go"
+   echo
+   echo "Subject to whatever languages I've decided to write the program in for any given day"
+   echo "It most likely will be go"
+   echo "To run the program, use the `run` command"
+}
+
+if [ "${1}" == "" ] || [ "${2}" == "" ] || [ "${3}" == "" ] || [ "${1}" == "-h" ]; then
+	Help
+	exit
+fi
+
+if [ ${1} == "go" ]; then
+	file="internal/${2}/day${3}/main.go"
+	alt="internal/${2}/day${3}/go/main.go"
+
+	if [ -f $file ]; then
+		go build -o "bin/${1}_${2}_${3}" $file
+
+	elif [ -f $alt ]; then
+		go build -o "bin/${1}_${2}_${3}" $alt
+
+	else 
+		echo "I couldn't find the main file, brother..."
+	fi
+
+elif [ ${1} == "cpp" ]; then
+	file="internal/${2}/day${3}/cpp/main.cpp"
+	alt="internal/${2}/day${3}/main.cpp"
+
+	if [ -f $file ]; then
+		g++ -o "bin/${1}_${2}_${3}" $file
+
+	elif [ -f $alt ]; then
+		g++ -o "bin/${1}_${2}_${3}" $alt
+
+	else 
+		echo "I couldn't find the main file, brother..."
+	fi
+
+elif [ ${1} == "zig" ]; then
+	file="internal/${2}/day${3}/zig/main.zig"
+	alt="internal/${2}/day${3}/main.zig"
+
+	if [ -f $file ]; then
+		zig build-exe $file -femit-bin="bin/${1}_${2}_${3}"
+
+	elif [ -f $alt ]; then
+		zig build-exe $alt -femit-bin="bin/${1}_${2}_${3}"
+
+	else 
+		echo "I couldn't find the main file, brother..."
+	fi
+else
+	echo "I don't know how to build ${1}, brother. You are vibing too hard :'("
+	exit
+fi
+
+
