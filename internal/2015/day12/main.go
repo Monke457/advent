@@ -2,45 +2,65 @@ package main
 
 import (
 	"advent/internal/pkg/reader"
+	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 func main() {
 	data := reader.FileToString("data/2015/day12.txt")
-	fmt.Println("First problem:", solveFirstProblem(data))
-	fmt.Println("Second problem:", solveSecondProblem(data))
+
+	ignore := "red"
+	fmt.Println("First problem:", sumInts(data, nil))
+	fmt.Println("Second problem:", sumInts(data, &ignore))
 }
 
-func solveFirstProblem(data string) int {
-	return sumInts(data)
+func sumInts(data string, ignore *string) int {
+	res := []interface{}{}
+	json.Unmarshal([]byte(data), &res)
+
+	sum := sumArray(res, ignore)
+
+	return sum
 }
 
-func solveSecondProblem(data string) int {
-	return sumWithoutRed(data)
-}
-
-func sumWithoutRed(data string) int {
-	return 0 
-}
-
-func sumInts(data string) int {
-	var total int
-	sb := strings.Builder{}
-	for _, b := range data {
-		if b == '-' {
-			sb.WriteRune(b)
-		} else if b > 47 && b < 58 {
-			sb.WriteRune(b)
-		} else if sb.Len() > 0 {
-			val, err := strconv.Atoi(sb.String())
-			if err != nil {
-				panic(err)
-			}
-			total += val
-			sb.Reset()
+func sumArray(arr []interface{}, ignore *string) int {
+	sum := 0
+	for _, m := range arr {
+		switch mv := m.(type) {
+		case int:
+			sum += mv
+		case float64:
+			sum += int(mv)
+		case map[string]interface{}:
+			sum += sumObject(mv, ignore)
+		case []interface{}:
+			sum += sumArray(mv, ignore)
 		}
 	}
-	return total
+	return sum
 }
+
+func sumObject(og map[string]interface{}, ignore *string) int { 
+	sum := 0
+	for key, value := range og {
+		if ignore != nil && key == *ignore {
+			return 0
+		}
+		switch v := value.(type) {
+		case int:
+			sum += v
+		case float64:
+			sum += int(v)
+		case string:
+			if ignore != nil && v == *ignore {
+				return 0
+			}
+		case map[string]interface{}:
+			sum += sumObject(v, ignore)
+		case []interface{}:
+			sum += sumArray(v, ignore)
+		}
+	}	
+	return sum
+}
+
