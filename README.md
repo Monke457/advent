@@ -1,9 +1,22 @@
 # Advent of Code exercises
 [Advent of code <3](https://adventofcode.com/)
 
-Run all solutions from the root advent directory (this directory).
+Build and run all solutions from the root advent directory.
 
-#### Running go or cpp solutions
+#### Building go, cpp or zig solutions
+
+>```
+>./build [lang] [year] [day]
+>```
+>examples
+>```
+>./build go 2024 21
+>./build zig 2024 1
+>```
+
+---
+
+#### Running go, cpp or zig solutions
 
 >```
 >./run [lang] [year] [day]
