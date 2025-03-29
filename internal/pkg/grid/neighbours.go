@@ -24,6 +24,18 @@ func GetNeighbours[T comparable](data [][]T, pos [2]int) [][2]int {
 	return neighbours
 }
 
+func CountNeighbours[T comparable](data [][]T, pos [2]int) int {
+	count := 0
+	for _, dir := range dirs {
+		y, x := pos[0] + dir[0], pos[1] + dir[1]
+		if oob(data, y, x) {
+			continue
+		}
+		count++
+	}
+	return count
+}
+
 func Neighbours2D() [][]int {
 	return [][]int {
 		{-1, -1},
